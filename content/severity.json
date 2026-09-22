@@ -1,0 +1,42 @@
+[
+  {
+    "id": "sev1",
+    "label": "SEV1",
+    "definition": "Total outage or data loss affecting many users; revenue impact",
+    "response": "Page immediately; declare an incident",
+    "rank": 1,
+    "colorKey": "l3"
+  },
+  {
+    "id": "sev2",
+    "label": "SEV2",
+    "definition": "Major feature degraded for many users; workaround is painful",
+    "response": "Page; likely declare an incident",
+    "rank": 2,
+    "colorKey": "l3"
+  },
+  {
+    "id": "sev3",
+    "label": "SEV3",
+    "definition": "Minor feature broken for some users; workaround acceptable",
+    "response": "Ticket; resolve in business hours",
+    "rank": 3,
+    "colorKey": "l4"
+  },
+  {
+    "id": "sev4",
+    "label": "SEV4",
+    "definition": "Cosmetic; single user; no workaround needed",
+    "response": "Ticket; scheduled",
+    "rank": 4,
+    "colorKey": "g"
+  },
+  {
+    "id": "sev5",
+    "label": "SEV5",
+    "definition": "Question, feature request, or documentation issue",
+    "response": "Queue for the backlog",
+    "rank": 5,
+    "colorKey": "g"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "id": "tool_question",
+    "title": "You know which tool answers which question.",
+    "body": "APM traces answer *where is it slow?* Logs answer *what did the code do?* RUM answers *what did the user see?* Session replay answers *what did the user do?* Post-mortems answer *why did this happen?*"
+  },
+  {
+    "id": "document_moment",
+    "title": "You know which document governs which moment.",
+    "body": "A runbook governs a known task. A playbook governs a class of incident. A SOP governs a recurring workflow. A post-mortem governs learning."
+  },
+  {
+    "id": "stop_start",
+    "title": "You know when to stop one activity and start another.",
+    "body": "Stop diagnosing and start mitigating when customer impact is severe. Stop mitigating and start analyzing when the bleed is under control. Stop analyzing and start writing when the timeline is complete."
+  },
+  {
+    "id": "produces",
+    "title": "You know what the loop produces.",
+    "body": "Every incident should produce at least one of: a new test, a new alert, a new runbook entry, a playbook revision, a new SOP, or a new design constraint. If it produced none of those, the learning was lost."
+  },
+  {
+    "id": "consumes",
+    "title": "You know what the loop consumes.",
+    "body": "Every incident consumes the observability built in Layer 2 and the procedures written in Layers 1 and 2. Where those were inadequate, the incident ran longer than it should have — and the fix belongs upstream, not only in a post-mortem."
+  }
+]

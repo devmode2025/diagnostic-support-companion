@@ -1,0 +1,56 @@
+[
+  {
+    "id": "availability",
+    "label": "Availability",
+    "description": "Service is down or unreachable",
+    "owner": "SRE / platform"
+  },
+  {
+    "id": "performance",
+    "label": "Performance",
+    "description": "Slow but functional",
+    "owner": "Backend / infrastructure"
+  },
+  {
+    "id": "functional_defect",
+    "label": "Functional defect",
+    "description": "Feature does not work as designed",
+    "owner": "Feature team"
+  },
+  {
+    "id": "data_integrity",
+    "label": "Data integrity",
+    "description": "Wrong, missing, or corrupted data",
+    "owner": "Data / backend"
+  },
+  {
+    "id": "configuration",
+    "label": "Configuration",
+    "description": "Misconfiguration of a known-good system",
+    "owner": "Support / SRE"
+  },
+  {
+    "id": "user_error",
+    "label": "User error",
+    "description": "Reporter misunderstood or misused a feature",
+    "owner": "Support"
+  },
+  {
+    "id": "security",
+    "label": "Security",
+    "description": "Suspected breach, exposure, or auth anomaly",
+    "owner": "Security on-call"
+  },
+  {
+    "id": "third_party",
+    "label": "Third-party",
+    "description": "A dependency provider is failing",
+    "owner": "Vendor management"
+  },
+  {
+    "id": "unknown",
+    "label": "Unknown",
+    "description": "Cannot be classified yet",
+    "owner": "Support — investigate"
+  }
+]

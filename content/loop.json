@@ -1,0 +1,51 @@
+{
+  "title": "The diagnostic support engineer's loop",
+  "standfirst": "What the role does across the full lifecycle of a system — from code being written, through CI/CD, into production, through a ticket, through an incident, and out the other side into organizational learning.",
+  "readOrder": "clockwise",
+  "note": "Read clockwise. The four layers are a cycle, not a handoff. Between Layer 2 and Layer 3 sits the assessment gate — the six-phase first response that decides whether a report becomes an incident at all. Most tickets never pass through it, which is exactly why the gate matters.",
+  "layers": [
+    {
+      "id": "pre_production",
+      "number": 1,
+      "name": "Pre-production",
+      "description": "Prevent and catch defects before they ship.",
+      "transition": "Code ships →",
+      "colorKey": "l1",
+      "position": "top-left"
+    },
+    {
+      "id": "production_runtime",
+      "number": 2,
+      "name": "Production runtime",
+      "description": "Observe the live system and detect deviation.",
+      "transition": "Something looks wrong ↓",
+      "colorKey": "l2",
+      "position": "top-right"
+    },
+    {
+      "id": "incident_response",
+      "number": 3,
+      "name": "Incident response",
+      "description": "Diagnose, mitigate, communicate.",
+      "transition": "← The incident resolves",
+      "colorKey": "l3",
+      "position": "bottom-right"
+    },
+    {
+      "id": "post_incident",
+      "number": 4,
+      "name": "Post-incident",
+      "description": "Learn, memorialize, and change the system.",
+      "transition": "↑ New tests, alerts, runbooks",
+      "colorKey": "l4",
+      "position": "bottom-left"
+    }
+  ],
+  "gate": {
+    "id": "gate",
+    "name": "First response",
+    "position": "between-layer-2-and-layer-3",
+    "description": "The six-phase first response that decides whether a report becomes an incident at all.",
+    "transition": "First response"
+  }
+}

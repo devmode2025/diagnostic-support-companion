@@ -1,0 +1,2764 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Red Team Workflow — Print Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,400;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #111a21;
+        --ink-2: #3f4d59;
+        --ink-3: #6f7d88;
+        --rule: #b9c2c6;
+        --rule-2: #dde2e4;
+        --fill: #f2f5f5;
+        --fill-2: #e8edee;
+        --accent: #8a4d0c;
+        --sans: "IBM Plex Sans", system-ui, sans-serif;
+        --cond:
+          "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+        --serif: "IBM Plex Serif", Georgia, serif;
+        --mono: "IBM Plex Mono", ui-monospace, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #c9d1d3;
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 11pt;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      .page {
+        background: #fff;
+        max-width: 7in;
+        margin: 0 auto;
+        padding: 0.7in 0.75in 0.8in;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+      }
+
+      /* ---------- type ---------- */
+      h1 {
+        font-family: var(--cond);
+        font-weight: 700;
+        font-size: 34pt;
+        line-height: 0.95;
+        letter-spacing: -0.01em;
+        margin: 0;
+      }
+      h2 {
+        font-family: var(--cond);
+        font-weight: 700;
+        font-size: 17pt;
+        line-height: 1.12;
+        margin: 0 0 0.2rem;
+      }
+      h3 {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 11.5pt;
+        margin: 1.1rem 0 0.35rem;
+      }
+      h4 {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 10.5pt;
+        margin: 0.85rem 0 0.25rem;
+      }
+      p {
+        margin: 0 0 0.6rem;
+        max-width: none;
+      }
+      .small {
+        font-size: 9.5pt;
+        color: var(--ink-2);
+      }
+      code,
+      .m {
+        font-family: var(--mono);
+        font-size: 0.87em;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      /* ---------- cover ---------- */
+      .cover {
+        border-bottom: 2.5pt solid var(--ink);
+        padding-bottom: 1rem;
+        margin-bottom: 1.2rem;
+      }
+      .kicker {
+        font-family: var(--mono);
+        font-size: 8pt;
+        color: var(--accent);
+        margin: 0 0 1.6rem;
+        letter-spacing: 0.02em;
+      }
+      .cover .lede {
+        font-family: var(--serif);
+        font-size: 11.5pt;
+        line-height: 1.6;
+        color: var(--ink-2);
+        margin: 1rem 0 0;
+        max-width: 34em;
+      }
+      .cover-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-top: 1.2rem;
+        font-size: 8.5pt;
+        color: var(--ink-2);
+      }
+      .cover-meta div span {
+        display: block;
+        font-family: var(--cond);
+        font-size: 15pt;
+        font-weight: 600;
+        color: var(--ink);
+        line-height: 1.05;
+      }
+
+      /* ---------- contents ---------- */
+      .toc {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        column-count: 2;
+        column-gap: 1.6rem;
+      }
+      .toc li {
+        display: flex;
+        gap: 0.5rem;
+        align-items: baseline;
+        font-family: var(--cond);
+        font-size: 10pt;
+        padding: 0.22rem 0;
+        border-bottom: 1px solid var(--rule-2);
+        break-inside: avoid;
+      }
+      .toc li .n {
+        font-family: var(--mono);
+        font-size: 8pt;
+        color: var(--ink-3);
+        width: 1.3rem;
+        flex: none;
+      }
+
+      /* ---------- sections ---------- */
+      section {
+        break-before: page;
+        padding-top: 0.2rem;
+      }
+      section:first-of-type {
+        break-before: auto;
+      }
+      .sec-num {
+        font-family: var(--mono);
+        font-size: 8pt;
+        color: var(--ink-3);
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      .sec-head {
+        border-bottom: 1.5pt solid var(--ink);
+        padding-bottom: 0.45rem;
+        margin-bottom: 0.9rem;
+      }
+      .sec-lede {
+        font-family: var(--serif);
+        font-size: 10.5pt;
+        color: var(--ink-2);
+        margin: 0.35rem 0 0;
+      }
+
+      /* ---------- key ---------- */
+      .key-row {
+        display: grid;
+        grid-template-columns: 1.6rem 1fr 1fr;
+        gap: 0.7rem;
+        align-items: baseline;
+        padding: 0.4rem 0;
+        border-top: 1px solid var(--rule-2);
+        break-inside: avoid;
+      }
+      .key-row:last-child {
+        border-bottom: 1px solid var(--rule-2);
+      }
+      .key-row .n {
+        font-family: var(--mono);
+        font-size: 8pt;
+        color: var(--accent);
+      }
+      .key-row .sym {
+        font-weight: 500;
+        font-size: 10pt;
+      }
+      .key-row .tool {
+        font-family: var(--mono);
+        font-size: 8.5pt;
+        color: var(--ink-2);
+      }
+
+      /* ---------- lists & boxes ---------- */
+      ul,
+      ol {
+        margin: 0.3rem 0 0.6rem;
+        padding-left: 1.05rem;
+      }
+      li {
+        margin: 0.15rem 0;
+      }
+      .principles {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0;
+      }
+      .principles li {
+        padding: 0.45rem 0 0.45rem 0.8rem;
+        border-left: 2pt solid var(--rule);
+        margin-bottom: 0.5rem;
+        break-inside: avoid;
+      }
+      .principles b {
+        font-family: var(--cond);
+      }
+      .box {
+        background: var(--fill);
+        border: 1px solid var(--rule);
+        padding: 0.7rem 0.85rem;
+        margin: 0.7rem 0;
+        break-inside: avoid;
+      }
+      .box h4 {
+        margin-top: 0;
+      }
+      .box p:last-child,
+      .box ul:last-child {
+        margin-bottom: 0;
+      }
+      .quote {
+        font-family: var(--serif);
+        font-size: 12pt;
+        line-height: 1.5;
+        border-left: 2.5pt solid var(--accent);
+        padding: 0.1rem 0 0.1rem 1rem;
+        margin: 0.9rem 0;
+        break-inside: avoid;
+      }
+      .script {
+        background: var(--fill);
+        border: 1px solid var(--rule);
+        border-left: 2.5pt solid var(--ink-2);
+        padding: 0.8rem 1rem;
+        margin: 0.6rem 0 1rem;
+        break-inside: avoid;
+      }
+      .script h4 {
+        margin-top: 0;
+      }
+      .script p,
+      .script ol {
+        font-family: var(--serif);
+        font-size: 10.5pt;
+        line-height: 1.6;
+      }
+      .script p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* ---------- tick boxes ---------- */
+      .tick {
+        list-style: none;
+        padding: 0;
+        margin: 0.4rem 0;
+      }
+      .tick li {
+        display: flex;
+        gap: 0.55rem;
+        align-items: flex-start;
+        margin: 0.3rem 0;
+        break-inside: avoid;
+      }
+      .sq {
+        width: 10pt;
+        height: 10pt;
+        border: 1px solid var(--ink-2);
+        flex: none;
+        margin-top: 2.5pt;
+        display: inline-block;
+        background: #fff;
+      }
+      .task {
+        border: 1px solid var(--rule);
+        padding: 0.55rem 0.75rem;
+        margin-bottom: 0.45rem;
+        break-inside: avoid;
+      }
+      .task > .hd {
+        display: flex;
+        gap: 0.55rem;
+        align-items: flex-start;
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 10.5pt;
+      }
+      .task ul {
+        margin: 0.35rem 0 0 1.5rem;
+        font-size: 9.5pt;
+        color: var(--ink-2);
+      }
+
+      .tier-head {
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+        border-bottom: 1.5pt solid var(--ink);
+        padding-bottom: 0.3rem;
+        margin: 1rem 0 0.6rem;
+      }
+      .tier-head h3 {
+        margin: 0;
+      }
+      .tier-head .when {
+        font-size: 9pt;
+        color: var(--ink-2);
+        margin-left: auto;
+        font-family: var(--mono);
+      }
+
+      /* ---------- tables ---------- */
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 9.5pt;
+        margin: 0.6rem 0;
+      }
+      th {
+        font-family: var(--cond);
+        font-weight: 600;
+        text-align: left;
+        padding: 0.35rem 0.5rem 0.35rem 0;
+        border-bottom: 1.5pt solid var(--ink);
+        vertical-align: bottom;
+      }
+      td {
+        padding: 0.4rem 0.5rem 0.4rem 0;
+        border-bottom: 1px solid var(--rule-2);
+        vertical-align: top;
+        color: var(--ink-2);
+      }
+      td:first-child {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      tr {
+        break-inside: avoid;
+      }
+
+      /* ---------- failure classes ---------- */
+      .class {
+        border: 1px solid var(--rule);
+        margin-bottom: 0.8rem;
+        break-inside: avoid;
+      }
+      .class-hd {
+        background: var(--fill-2);
+        border-bottom: 1px solid var(--rule);
+        padding: 0.45rem 0.8rem;
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+      }
+      .class-hd .n {
+        font-family: var(--cond);
+        font-weight: 700;
+        font-size: 13pt;
+        line-height: 1;
+      }
+      .class-hd h3 {
+        margin: 0;
+        font-size: 11.5pt;
+      }
+      .class-hd .scope {
+        font-family: var(--mono);
+        font-size: 7.5pt;
+        color: var(--ink-3);
+        margin-left: auto;
+      }
+      .class-bd {
+        padding: 0.6rem 0.8rem;
+      }
+      .rowset {
+        display: grid;
+        grid-template-columns: 5.4rem 1fr;
+        gap: 0 0.8rem;
+      }
+      .rowset dt {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 8.5pt;
+        color: var(--ink-3);
+        padding: 0.3rem 0;
+        border-top: 1px solid var(--rule-2);
+      }
+      .rowset dd {
+        margin: 0;
+        padding: 0.3rem 0;
+        border-top: 1px solid var(--rule-2);
+        font-size: 9.5pt;
+        color: var(--ink-2);
+      }
+      .rowset dt:first-of-type,
+      .rowset dd:first-of-type {
+        border-top: none;
+      }
+      .rowset ul {
+        margin: 0;
+        padding-left: 0.9rem;
+      }
+      .heur {
+        margin-top: 0.5rem;
+        border: 1px solid var(--rule);
+        border-left: 2.5pt solid var(--accent);
+        background: var(--fill);
+        padding: 0.5rem 0.7rem;
+      }
+      .heur .tag {
+        font-family: var(--mono);
+        font-size: 7pt;
+        color: var(--accent);
+        display: block;
+        margin-bottom: 0.15rem;
+      }
+      .heur p {
+        margin: 0;
+        font-family: var(--serif);
+        font-size: 10pt;
+        line-height: 1.45;
+      }
+
+      /* ---------- glossary ---------- */
+      .term {
+        padding: 0.5rem 0;
+        border-top: 1px solid var(--rule-2);
+        break-inside: avoid;
+      }
+      .term h4 {
+        margin: 0 0 0.1rem;
+        font-size: 10.5pt;
+      }
+      .term .def {
+        margin: 0;
+        font-size: 9.5pt;
+        color: var(--ink-2);
+      }
+      .term .ex {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 10pt;
+        margin: 0.25rem 0 0;
+        padding-left: 0.7rem;
+        border-left: 1px solid var(--rule);
+      }
+      .term .connects {
+        font-family: var(--mono);
+        font-size: 7.5pt;
+        color: var(--ink-3);
+        display: block;
+        margin-top: 0.2rem;
+      }
+
+      /* ---------- sprint ---------- */
+      .day {
+        display: grid;
+        grid-template-columns: 5.5rem 1fr;
+        gap: 0.9rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--rule-2);
+        break-inside: avoid;
+      }
+      .day .when {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 9.5pt;
+      }
+      .day .when small {
+        display: block;
+        font-weight: 400;
+        font-family: var(--mono);
+        font-size: 7.5pt;
+        color: var(--ink-3);
+      }
+      .day h4 {
+        margin: 0 0 0.2rem;
+      }
+      .day ul {
+        margin: 0;
+        padding-left: 1rem;
+        font-size: 9.5pt;
+        color: var(--ink-2);
+      }
+      .phase-head {
+        display: flex;
+        align-items: baseline;
+        gap: 0.6rem;
+        border-bottom: 1.5pt solid var(--ink);
+        padding-bottom: 0.3rem;
+        margin: 1.1rem 0 0.3rem;
+      }
+      .phase-head h3 {
+        margin: 0;
+      }
+      .phase-head .hrs {
+        margin-left: auto;
+        font-family: var(--mono);
+        font-size: 8.5pt;
+        color: var(--accent);
+      }
+
+      /* ---------- before/after, chips, toolboxes ---------- */
+      .ba {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.7rem;
+        margin: 0.6rem 0;
+      }
+      .ba > div {
+        border: 1px solid var(--rule);
+        padding: 0.6rem 0.75rem;
+        break-inside: avoid;
+      }
+      .ba .t {
+        font-family: var(--mono);
+        font-size: 7.5pt;
+        color: var(--ink-3);
+        margin: 0 0 0.3rem;
+      }
+      .ba .after {
+        background: var(--fill);
+      }
+      .ba p {
+        font-family: var(--serif);
+        font-size: 10pt;
+        margin: 0;
+      }
+      .chips {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        padding: 0;
+        margin: 0.4rem 0 0.7rem;
+      }
+      .chips li {
+        font-family: var(--cond);
+        font-size: 9pt;
+        border: 1px solid var(--rule);
+        padding: 0.12rem 0.45rem;
+        margin: 0;
+      }
+      .cols2 {
+        column-count: 2;
+        column-gap: 1.4rem;
+      }
+      .cols2 > * {
+        break-inside: avoid;
+      }
+      .toolbox {
+        border: 1px solid var(--rule);
+        border-top: 2pt solid var(--ink-2);
+        padding: 0.55rem 0.75rem;
+        margin-bottom: 0.7rem;
+        break-inside: avoid;
+      }
+      .toolbox h4 {
+        margin: 0 0 0.3rem;
+      }
+      .toolbox ul {
+        margin: 0;
+        padding-left: 0.95rem;
+        font-size: 9pt;
+        color: var(--ink-2);
+      }
+      .acr td:first-child {
+        font-family: var(--mono);
+        font-size: 8.5pt;
+        width: 3.6rem;
+      }
+
+      /* ---------- write-in ---------- */
+      .story {
+        border: 1px solid var(--rule);
+        padding: 0.8rem 0.9rem;
+        margin-bottom: 0.8rem;
+        break-inside: avoid;
+      }
+      .story h3 {
+        margin: 0 0 0.1rem;
+      }
+      .story .sub {
+        font-size: 9pt;
+        color: var(--ink-3);
+        margin: 0 0 0.7rem;
+      }
+      .wfield {
+        margin-bottom: 0.55rem;
+      }
+      .wfield .lbl {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 8.5pt;
+        color: var(--ink-3);
+        margin-bottom: 0.1rem;
+      }
+      .line {
+        border-bottom: 1px solid var(--rule);
+        height: 1.55em;
+      }
+      .line + .line {
+        margin-top: 0.1rem;
+      }
+      .reflect {
+        margin-top: 0.7rem;
+        padding-top: 0.5rem;
+        border-top: 1.5pt solid var(--ink);
+      }
+      .reflect .rt {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 9pt;
+        margin: 0 0 0.4rem;
+      }
+
+      .notes {
+        border: 1px solid var(--rule);
+        padding: 0.7rem 0.85rem;
+        margin-top: 0.7rem;
+      }
+      .notes .lbl {
+        font-family: var(--cond);
+        font-weight: 600;
+        font-size: 8.5pt;
+        color: var(--ink-3);
+        margin-bottom: 0.3rem;
+      }
+
+      footer.doc {
+        border-top: 2.5pt solid var(--ink);
+        margin-top: 1.5rem;
+        padding-top: 0.6rem;
+        font-size: 8.5pt;
+        color: var(--ink-3);
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      footer.doc .m {
+        font-family: var(--mono);
+      }
+
+      .printnote {
+        background: var(--fill-2);
+        border: 1px solid var(--rule);
+        padding: 0.8rem 1rem;
+        margin: 0 auto 1rem;
+        max-width: 7in;
+        font-size: 9.5pt;
+      }
+      .printnote b {
+        font-family: var(--cond);
+      }
+
+      /* ---------- provenance banner ---------- */
+      .provenance-banner {
+        font-family: var(--sans);
+        font-size: 10pt;
+        line-height: 1.55;
+        color: var(--ink);
+        background: var(--fill-2);
+        border-bottom: 1.5pt solid var(--ink);
+        padding: 0.7rem 1rem;
+        max-width: 7in;
+        margin: 0 auto 1rem;
+      }
+      .provenance-banner strong {
+        font-family: var(--cond);
+        font-weight: 600;
+        margin-right: 0.35rem;
+      }
+      .provenance-banner a {
+        color: var(--accent);
+        border-bottom: 1px solid var(--rule);
+      }
+      .provenance-banner code {
+        font-family: var(--mono);
+        font-size: 0.85em;
+        padding: 0.05em 0.35em 0.1em;
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-radius: 2px;
+      }
+      @media (max-width: 40rem) {
+        .page {
+          padding: 1rem 0.9rem;
+        }
+        .toc,
+        .cols2 {
+          column-count: 1;
+        }
+        .ba {
+          grid-template-columns: 1fr;
+        }
+        .rowset {
+          grid-template-columns: 1fr;
+        }
+        .rowset dd {
+          border-top: none;
+          padding-top: 0;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+          font-size: 10.5pt;
+        }
+        .page {
+          max-width: none;
+          margin: 0;
+          padding: 0;
+          box-shadow: none;
+        }
+        .printnote {
+          display: none;
+        }
+        .provenance-banner {
+          display: none;
+        }
+        section {
+          break-before: page;
+        }
+        .class,
+        .term,
+        .task,
+        .day,
+        .story,
+        .box,
+        .script,
+        .quote,
+        .toolbox,
+        tr {
+          break-inside: avoid;
+        }
+        h2,
+        h3,
+        h4 {
+          break-after: avoid;
+        }
+      }
+      @page {
+        size: letter;
+        margin: 0.6in 0.65in;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="printnote">
+      <b>Printing.</b> Use Letter paper, portrait, and turn on
+      <b>Headers and footers</b> in the print dialog to get page numbers.
+      Roughly 26 pages; each section starts on a fresh sheet. Section 14 has
+      ruled lines for writing your stories in by hand — print that section even
+      if you skip the rest.
+    </div>
+
+    <div class="provenance-banner">
+      <strong>Provenance artifact.</strong>
+      This is the original red-team workflow guide that informed the diagnostic
+      support companion, preserved as a reference. The authoritative, current
+      version of the method lives in
+      <a
+        href="https://github.com/devmode2025/diagnostic-support-companion/tree/main/content"
+        ><code>content/*.json</code></a
+      >
+      and is rendered by the app at
+      <a href="/reference">/reference</a>. This file is not edited. If the
+      method changes, the JSON changes and this document becomes a historical
+      record of the first draft.
+    </div>
+
+    <div class="page">
+      <header class="cover">
+        <p class="kicker">FIELD GUIDE · PRINT EDITION · REV. 2026</p>
+        <h1>Red Team<br />Workflow</h1>
+        <p class="lede">
+          Diagnostic support engineering is red-teaming in production. You hunt
+          for failure modes, use structured tools to narrow them, and hand the
+          customer something they can act on.
+        </p>
+        <div class="cover-meta">
+          <div><span>6</span>classes of failure</div>
+          <div><span>3</span>stories to build</div>
+          <div><span>18</span>hours of work</div>
+          <div><span>10</span>days to done</div>
+        </div>
+      </header>
+
+      <h3 style="margin-top: 0">Contents</h3>
+      <ul class="toc">
+        <li><span class="n">—</span><span>Priority task list</span></li>
+        <li><span class="n">01</span><span>What it is</span></li>
+        <li><span class="n">02</span><span>The connection</span></li>
+        <li><span class="n">03</span><span>Diagnostic matrix</span></li>
+        <li><span class="n">04</span><span>Vocabulary</span></li>
+        <li><span class="n">05</span><span>Two-week sprint</span></li>
+        <li><span class="n">06</span><span>Resume rewrite</span></li>
+        <li><span class="n">07</span><span>Open source</span></li>
+        <li><span class="n">08</span><span>Red-team projects</span></li>
+        <li><span class="n">09</span><span>Ticketing tools</span></li>
+        <li><span class="n">10</span><span>Job titles</span></li>
+        <li><span class="n">11</span><span>Hidden job market</span></li>
+        <li><span class="n">12</span><span>Interview scripts</span></li>
+        <li><span class="n">13</span><span>Quick reference</span></li>
+        <li><span class="n">14</span><span>My war stories</span></li>
+      </ul>
+
+      <h3>Classify first, then pick the tool</h3>
+      <p class="small">
+        When an interviewer asks "how would you approach this?", start here.
+        Name the class of failure out loud, and the first tool follows from it.
+      </p>
+      <div class="key-row">
+        <span class="n">01</span
+        ><span class="sym">Slow degradation over time</span
+        ><span class="tool">heap snapshots, memory profilers</span>
+      </div>
+      <div class="key-row">
+        <span class="n">02</span><span class="sym">Wrong data coming back</span
+        ><span class="tool">curl, API response headers</span>
+      </div>
+      <div class="key-row">
+        <span class="n">03</span
+        ><span class="sym">Plausible-but-wrong AI output</span
+        ><span class="tool">prompt logs, token counters</span>
+      </div>
+      <div class="key-row">
+        <span class="n">04</span
+        ><span class="sym">Only breaks in one environment</span
+        ><span class="tool">.env diffs, dependency lists</span>
+      </div>
+      <div class="key-row">
+        <span class="n">05</span><span class="sym">Intermittent and random</span
+        ><span class="tool">database locks, distributed tracing</span>
+      </div>
+      <div class="key-row">
+        <span class="n">06</span
+        ><span class="sym">Silent failure, nothing logged</span
+        ><span class="tool">global error handlers, log aggregation</span>
+      </div>
+
+      <!-- ===== TASKS ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Start here</span>
+          <h2>Priority task list</h2>
+          <p class="sec-lede">
+            Eight tasks in three tiers. The first three produce the artifacts
+            everything else depends on, so nothing below them matters until they
+            are done.
+          </p>
+        </div>
+
+        <div class="tier-head">
+          <h3>High priority</h3>
+          <span class="when">WEEKS 1–2 · DO FIRST</span>
+        </div>
+        <div class="task">
+          <div class="hd">
+            <span class="sq"></span>Task 1 — Create the Angular sabotage lab
+          </div>
+          <ul>
+            <li>Set up an Angular 17 repo with a clean main branch</li>
+            <li>Plant a subscription leak bug, no diagnosis yet</li>
+            <li>Diagnose with Chrome DevTools only</li>
+            <li>
+              Write Story #1: symptom, initial thought, narrowing, root cause,
+              explanation
+            </li>
+          </ul>
+        </div>
+        <div class="task">
+          <div class="hd">
+            <span class="sq"></span>Task 2 — Build the AI customer emulator
+          </div>
+          <ul>
+            <li>Node/Express server with OpenAI or Ollama</li>
+            <li>Simple client to send prompts</li>
+            <li>Plant an AI hallucination or stale RAG bug</li>
+            <li>Diagnose from logs only, no source code</li>
+            <li>Write Story #3</li>
+          </ul>
+        </div>
+        <div class="task">
+          <div class="hd">
+            <span class="sq"></span>Task 3 — Rewrite a public postmortem
+          </div>
+          <ul>
+            <li>Choose a Cloudflare, GitLab, or Stripe incident</li>
+            <li>Rewrite it in first person as the on-call engineer</li>
+            <li>Write Story #2</li>
+          </ul>
+        </div>
+
+        <div class="tier-head">
+          <h3>Medium priority</h3>
+          <span class="when">WEEKS 3–4</span>
+        </div>
+        <div class="task">
+          <div class="hd">
+            <span class="sq"></span>Task 4 — Misconfigure a target product
+          </div>
+          <ul>
+            <li>Choose Sentry or Supabase</li>
+            <li>
+              Break it deliberately: source map mismatch, or an RLS policy
+              failure
+            </li>
+            <li>Document the error surfaces and failure modes</li>
+            <li>Write Story #4 (bonus)</li>
+          </ul>
+        </div>
+        <div class="task">
+          <div class="hd">
+            <span class="sq"></span>Task 5 — Make an open source contribution
+          </div>
+          <ul>
+            <li>Find a "good first issue" on GitHub</li>
+            <li>Introduce yourself to the community</li>
+            <li>Take ownership and finish the issue</li>
+            <li>Add it to the resume as volunteer experience</li>
+          </ul>
+        </div>
+        <div class="task">
+          <div class="hd">
+            <span class="sq"></span>Task 6 — Transform the resume
+          </div>
+          <ul>
+            <li>Rewrite frontend bullets in support language</li>
+            <li>Add core competencies with support keywords</li>
+            <li>Add the Diagnostic Simulation Lab project</li>
+          </ul>
+        </div>
+
+        <div class="tier-head">
+          <h3>Low priority</h3>
+          <span class="when">ONGOING</span>
+        </div>
+        <div class="task">
+          <div class="hd">
+            <span class="sq"></span>Task 7 — Practice the vocabulary
+          </div>
+          <ul>
+            <li>Record two-minute mock interviews</li>
+            <li>Work in two or three red-team terms naturally</li>
+            <li>Play it back and refine</li>
+          </ul>
+        </div>
+        <div class="task">
+          <div class="hd">
+            <span class="sq"></span>Task 8 — Set up job alerts
+          </div>
+          <ul>
+            <li>Technical Support Engineer</li>
+            <li>AI Red Team Operator</li>
+            <li>Site Reliability Engineer</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== 1 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 1</span>
+          <h2>What is a review / red-team workflow?</h2>
+          <p class="sec-lede">
+            A structured process where a dedicated team or automated system acts
+            as an adversarial partner, stress-testing a product, strategy, or
+            codebase from an outsider's perspective to find weaknesses before
+            they become real problems.
+          </p>
+        </div>
+
+        <p>
+          Think of it as a formal attack on your own work before it ships. The
+          goal isn't to be negative. It's to find and fix flaws so the final
+          output is stronger, more secure, and more resilient.
+        </p>
+
+        <h3>Core principles</h3>
+        <ul class="principles">
+          <li>
+            <b>Adversarial mindset.</b> Reviewers think like an attacker, a
+            competitor, or a skeptical stakeholder. They look for the ways a
+            thing will fail, not just whether it is currently correct.
+          </li>
+          <li>
+            <b>Structured process.</b> A defined process with specific goals:
+            testing for security weaknesses, finding logical gaps, challenging
+            core assumptions.
+          </li>
+          <li>
+            <b>Cross-functional, objective perspectives.</b> The most effective
+            red teams include experts who were not involved in building the
+            thing, which is what overcomes blind spots and internal bias.
+          </li>
+          <li>
+            <b>Actionable results.</b> Clear findings sorted into
+            <b>fixable</b> (you know how to solve it) and
+            <b>investigate</b> (needs human judgment).
+          </li>
+        </ul>
+
+        <h3>How it works in practice</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Application area</th>
+              <th>Focus of the red team</th>
+              <th>Key activities</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Software development</td>
+              <td>Code and architecture</td>
+              <td>
+                Find edge cases, security holes, race conditions, resource leaks
+              </td>
+            </tr>
+            <tr>
+              <td>AI and LLM systems</td>
+              <td>Model behavior and safety</td>
+              <td>Test for harmful outputs, jailbreaks, data leakage</td>
+            </tr>
+            <tr>
+              <td>Business proposals and strategy</td>
+              <td>Messaging and value proposition</td>
+              <td>
+                Evaluate from the customer's perspective, look for gaps in logic
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ===== 2 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 2</span>
+          <h2>The connection</h2>
+          <p class="sec-lede">
+            Your diagnostic stories are red-team workflows applied to support.
+            Every column on the left already has a name on the right.
+          </p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Red-team workflow</th>
+              <th>Your diagnostic stories</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Adversarial mindset</td>
+              <td>Symptom — the customer reports a failure</td>
+            </tr>
+            <tr>
+              <td>Structured process</td>
+              <td>
+                The five-step narrative: symptom → initial thought → narrowing →
+                root cause → explanation
+              </td>
+            </tr>
+            <tr>
+              <td>Cross-functional perspectives</td>
+              <td>
+                The "remote" simulation — diagnose without looking at source
+                code
+              </td>
+            </tr>
+            <tr>
+              <td>Actionable results</td>
+              <td>A preventative recommendation, classified fixable</td>
+            </tr>
+            <tr>
+              <td>Automation and tooling</td>
+              <td>Heap snapshots, curl, token counters, logs</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <blockquote class="quote">
+          Diagnostic support engineering is just red-teaming in production.
+          You're hunting for failure modes, using structured tools to narrow
+          them, and delivering actionable fixes to the customer.
+        </blockquote>
+
+        <div class="notes">
+          <p class="lbl">NOTES</p>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </section>
+
+      <!-- ===== 3 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 3</span>
+          <h2>The master diagnostic matrix</h2>
+          <p class="sec-lede">
+            Six classes of failure. Each has a symptom you'll hear from a
+            customer, a first guess worth testing, a narrowing method, and a
+            heuristic worth saying out loud in an interview.
+          </p>
+        </div>
+
+        <div class="class">
+          <div class="class-hd">
+            <span class="n">1</span>
+            <h3>State and memory mismanagement</h3>
+            <span class="scope">FRONTEND</span>
+          </div>
+          <div class="class-bd">
+            <dl class="rowset">
+              <dt>Symptom</dt>
+              <dd>
+                UI sluggish after ten or more interactions; the tab eats 2 GB of
+                RAM. Or the UI flickers and fails to update after an async
+                operation.
+              </dd>
+              <dt>First guess</dt>
+              <dd>
+                "Maybe a large data set is being re-rendered." / "The data
+                changed, but the view didn't reflect it."
+              </dd>
+              <dt>Narrowing</dt>
+              <dd>
+                Three heap snapshots — before, during, after. Look for detached
+                DOM nodes or climbing component instance counts. Check whether
+                the async operation ran outside Angular's zone.
+              </dd>
+              <dt>Root cause</dt>
+              <dd>
+                Forgotten unsubscribe from an observable.
+                <span class="m">addEventListener</span> with no
+                <span class="m">removeEventListener</span>.
+                <span class="m">setTimeout</span> or
+                <span class="m">fetch</span> callback with no
+                <span class="m">zone.run()</span>.
+              </dd>
+              <dt>Tools</dt>
+              <dd>
+                DevTools → Memory → Heap snapshot · Angular DevTools ·
+                <span class="m">performance.memory</span> ·
+                <span class="m">NgZone.isInAngularZone()</span>
+              </dd>
+            </dl>
+            <div class="heur">
+              <span class="tag">HEURISTIC</span>
+              <p>
+                If performance degrades over time, it is almost always a leak.
+                The heap snapshot never lies.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="class">
+          <div class="class-hd">
+            <span class="n">2</span>
+            <h3>API and data flow failures</h3>
+            <span class="scope">BACKEND</span>
+          </div>
+          <div class="class-bd">
+            <dl class="rowset">
+              <dt>Symptom</dt>
+              <dd>
+                Intermittent 500s, only for large payloads. Or a 200 OK while
+                the UI shows stale data.
+              </dd>
+              <dt>First guess</dt>
+              <dd>
+                "Maybe the database is timing out." / "The UI must be caching
+                something."
+              </dd>
+              <dt>Narrowing</dt>
+              <dd>
+                Pull the exact SQL from server logs into a query analyzer. Check
+                <span class="m">Cache-Control</span> headers and look for 304s
+                in the Network tab.
+              </dd>
+              <dt>Root cause</dt>
+              <dd>
+                Missing index or an N+1 query. Aggressive CDN caching or a
+                misconfigured service worker. An ORM result cached in memory.
+              </dd>
+              <dt>Tools</dt>
+              <dd>
+                <span class="m">EXPLAIN ANALYZE</span> ·
+                <span class="m">explain()</span> · New Relic / Datadog traces ·
+                <span class="m">curl -v</span> · Redis
+                <span class="m">KEYS *</span>
+              </dd>
+            </dl>
+            <div class="heur">
+              <span class="tag">HEURISTIC</span>
+              <p>
+                Always start at the network layer. curl is your truth-teller. If
+                curl gets the wrong data, the problem is server-side; if curl is
+                right but the UI isn't, it's client-side caching.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="class">
+          <div class="class-hd">
+            <span class="n">3</span>
+            <h3>AI and LLM failures</h3>
+            <span class="scope">HALLUCINATION / RETRIEVAL</span>
+          </div>
+          <div class="class-bd">
+            <dl class="rowset">
+              <dt>Symptom</dt>
+              <dd>
+                The AI invents a fake name, date, or fact. Or it ignores the
+                first rule in the prompt.
+              </dd>
+              <dt>First guess</dt>
+              <dd>
+                "The model must be hallucinating." / "The user wrote a bad
+                prompt."
+              </dd>
+              <dt>Narrowing</dt>
+              <dd>
+                Log the exact prompt sent — system, user, context chunks. Count
+                tokens. Move the critical rule to the end; if the problem
+                disappears, it's positional bias.
+              </dd>
+              <dt>Root cause</dt>
+              <dd>
+                Context window too small. RAG retrieval dropped the relevant
+                chunks. Positional bias — the model forgets the middle of a long
+                prompt.
+              </dd>
+              <dt>Tools</dt>
+              <dd>
+                LangSmith / Arize · <span class="m">tiktoken</span> · Pinecone /
+                Weaviate console · Promptfoo / LangFuse
+              </dd>
+            </dl>
+            <div class="heur">
+              <span class="tag">HEURISTIC</span>
+              <p>
+                If the output is wrong but grammatically perfect, the problem is
+                in the input, not the model. Log the full prompt payload first.
+                Then count tokens. Then check retrieval order.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="class">
+          <div class="class-hd">
+            <span class="n">4</span>
+            <h3>Configuration and environment drift</h3>
+            <span class="scope">INFRASTRUCTURE</span>
+          </div>
+          <div class="class-bd">
+            <dl class="rowset">
+              <dt>Symptom</dt>
+              <dd>
+                "It works on my machine." Or the deployment succeeds but the
+                health check fails.
+              </dd>
+              <dt>First guess</dt>
+              <dd>
+                "Maybe the Node version is different." / "The new version must
+                have a bug."
+              </dd>
+              <dt>Narrowing</dt>
+              <dd>
+                Compare lockfiles. Compare
+                <span class="m">.env</span> variables. Read deployment logs.
+                Roll back and see what changes.
+              </dd>
+              <dt>Root cause</dt>
+              <dd>
+                Missing or stale env var. Dependency version mismatch. Build
+                artifact from an old CI run. A migration that never ran.
+              </dd>
+              <dt>Tools</dt>
+              <dd>
+                <span class="m">diff</span> dev/prod
+                <span class="m">.env</span> ·
+                <span class="m">npm ls --depth=0</span> ·
+                <span class="m">docker inspect</span> ·
+                <span class="m">kubectl logs</span> · CloudWatch · Sentry
+              </dd>
+            </dl>
+            <div class="heur">
+              <span class="tag">HEURISTIC</span>
+              <p>
+                When dev and prod disagree, it is almost never the code. It is
+                the configuration. Diff the environments first, not the commits.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="class">
+          <div class="class-hd">
+            <span class="n">5</span>
+            <h3>Concurrency and race conditions</h3>
+            <span class="scope">MULTI-USER / ASYNC</span>
+          </div>
+          <div class="class-bd">
+            <dl class="rowset">
+              <dt>Symptom</dt>
+              <dd>
+                Users occasionally see each other's data. A counter or inventory
+                count is wrong after heavy traffic.
+              </dd>
+              <dt>First guess</dt>
+              <dd>
+                "Session management is broken." / "Maybe the update is failing
+                silently."
+              </dd>
+              <dt>Narrowing</dt>
+              <dd>
+                Check <span class="m">session_id</span> in the request header.
+                Check whether the backend keeps state in a static variable. Look
+                for lost updates via row version or timestamp.
+              </dd>
+              <dt>Root cause</dt>
+              <dd>
+                Static variable shared across requests. Missing database-level
+                lock. UPDATE with no version check.
+              </dd>
+              <dt>Tools</dt>
+              <dd>
+                Thread dumps · <span class="m">pstree</span> ·
+                <span class="m">SELECT … FOR UPDATE</span> · Redis
+                <span class="m">INCR</span> · Jaeger / Zipkin
+              </dd>
+            </dl>
+            <div class="heur">
+              <span class="tag">HEURISTIC</span>
+              <p>
+                If the problem is intermittent and hits random users, it is a
+                race condition. The fix is almost always to add a lock or make
+                the operation atomic.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="class">
+          <div class="class-hd">
+            <span class="n">6</span>
+            <h3>Silent failures and logging gaps</h3>
+            <span class="scope">OBSERVABILITY</span>
+          </div>
+          <div class="class-bd">
+            <dl class="rowset">
+              <dt>Symptom</dt>
+              <dd>
+                The customer reports an error and there is nothing in the logs.
+                Generic "something went wrong" toast.
+              </dd>
+              <dt>First guess</dt>
+              <dd>
+                "The customer must be mistaken." / "The backend returned a 500."
+              </dd>
+              <dt>Narrowing</dt>
+              <dd>
+                Ask for exact timestamp and session ID, then filter logs by
+                session ID. Check the Network tab for the exact response
+                payload.
+              </dd>
+              <dt>Root cause</dt>
+              <dd>
+                try-catch that swallowed the exception. Log level too high.
+                Unhandled exception in an async callback. Nginx 502.
+              </dd>
+              <dt>Tools</dt>
+              <dd>
+                ELK stack · Sentry · OpenTelemetry · Nginx error logs · PM2 logs
+              </dd>
+            </dl>
+            <div class="heur">
+              <span class="tag">HEURISTIC</span>
+              <p>
+                If there are no logs, the error was swallowed. The fix is a
+                global error handler that logs every exception — then reproduce
+                it and see what was hidden.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 4 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 4</span>
+          <h2>Red-team vocabulary</h2>
+          <p class="sec-lede">
+            Twelve terms, each with a sentence you can actually say. Aim for two
+            or three per interview — more than that sounds rehearsed.
+          </p>
+        </div>
+
+        <div class="term">
+          <h4>Adversarial mindset</h4>
+          <p class="def">
+            Thinking like an attacker, a skeptic, or a hostile user. Instead of
+            "does this work?", you ask "how could this fail?"
+          </p>
+          <p class="ex">
+            I approach every support ticket with an adversarial mindset. I don't
+            assume the system is working correctly — I actively hunt for failure
+            modes.
+          </p>
+          <span class="connects">ALL STORIES</span>
+        </div>
+
+        <div class="term">
+          <h4>Attack surface</h4>
+          <p class="def">
+            Every point where an adversary — or a bug — can interact with a
+            system: user inputs, API endpoints, config files, environment
+            variables.
+          </p>
+          <p class="ex">
+            When I diagnosed the AI hallucination, I mapped the attack surface:
+            the user input, the prompt template, the RAG retrieval, and the LLM
+            response.
+          </p>
+          <span class="connects">AI STORY</span>
+        </div>
+
+        <div class="term">
+          <h4>Threat hypothesis</h4>
+          <p class="def">
+            An educated guess about the cause — your initial thought, before
+            narrowing. A good one is testable and specific.
+          </p>
+          <p class="ex">
+            My initial threat hypothesis was that the memory leak came from
+            unsubscribed observables. To test that, I took heap snapshots.
+          </p>
+          <span class="connects">ALL STORIES · STEP 2</span>
+        </div>
+
+        <div class="term">
+          <h4>Blast radius</h4>
+          <p class="def">
+            The scope of impact. How many users, which features, total outage or
+            partial degradation.
+          </p>
+          <p class="ex">
+            When the login outage was reported, I assessed the blast radius
+            quickly. It was hitting about 20% of users, but only on the mobile
+            app.
+          </p>
+          <span class="connects">POSTMORTEM STORY</span>
+        </div>
+
+        <div class="term">
+          <h4>Red-teaming in support</h4>
+          <p class="def">
+            Stress-testing a system by deliberately looking for failure modes —
+            treating every customer issue as a chance to fix a systemic
+            weakness.
+          </p>
+          <p class="ex">
+            My diagnostic workflow is essentially red-teaming in production. I
+            treat the customer's symptom as an attack vector, use tools to scan
+            for the vulnerability, and deliver a fix that hardens the system.
+          </p>
+          <span class="connects">META-FRAMEWORK</span>
+        </div>
+
+        <div class="term">
+          <h4>Fixable vs. investigate</h4>
+          <p class="def">
+            Fixable means you know the exact solution. Investigate means you
+            need more research first.
+          </p>
+          <p class="ex">
+            The source map mismatch was immediately fixable. The AI
+            hallucination was investigate — I had to log the full prompt, count
+            tokens, and check retrieval order first.
+          </p>
+          <span class="connects">ALL STORIES</span>
+        </div>
+
+        <div class="term">
+          <h4>Postmortem</h4>
+          <p class="def">
+            A written record of an incident: what happened, why, and what will
+            be done so it doesn't happen again.
+          </p>
+          <p class="ex">
+            After we resolved the outage I led the postmortem. We documented the
+            timeline, the root cause, and the preventative action, and I made
+            sure it stayed blameless.
+          </p>
+          <span class="connects">POSTMORTEM STORY</span>
+        </div>
+
+        <div class="term">
+          <h4>Runbook</h4>
+          <p class="def">
+            A documented set of procedures for handling common incidents.
+          </p>
+          <p class="ex">
+            After diagnosing the subscription leak, I wrote a runbook section on
+            identifying and fixing memory leaks in our Angular apps, with the
+            exact DevTools steps and a code snippet.
+          </p>
+          <span class="connects">ANGULAR STORY</span>
+        </div>
+
+        <div class="term">
+          <h4>Observability</h4>
+          <p class="def">
+            Understanding a system's internal state from its external outputs —
+            logs, metrics, traces.
+          </p>
+          <p class="ex">
+            The hardest part of diagnosing the silent failure was the lack of
+            observability. The error was swallowed by a try-catch that logged
+            nothing. I fixed it with a global error handler.
+          </p>
+          <span class="connects">ESPECIALLY CLASS 6</span>
+        </div>
+
+        <div class="term">
+          <h4>Toil</h4>
+          <p class="def">
+            Repetitive manual work that creates no lasting value.
+          </p>
+          <p class="ex">
+            Our team was spending too much time on toil — manually asking
+            customers for their browser version and OS. I built a small script
+            that captured it from the user-agent header instead.
+          </p>
+          <span class="connects">PREVENTATIVE RECOMMENDATIONS</span>
+        </div>
+
+        <div class="term">
+          <h4>SLA — service level agreement</h4>
+          <p class="def">
+            A formal commitment to customers about response times, resolution
+            times, and uptime.
+          </p>
+          <p class="ex">
+            This was a P1, which meant a one-hour SLA for initial response. I
+            dropped everything, assessed the blast radius, and communicated our
+            commitment within the first 30 minutes.
+          </p>
+          <span class="connects">URGENCY</span>
+        </div>
+
+        <div class="term">
+          <h4>SLO — service level objective</h4>
+          <p class="def">
+            An internal reliability target, usually more aggressive than the
+            SLA.
+          </p>
+          <p class="ex">
+            Our SLO for API response time was 200 ms at p95. When we started
+            hitting 500 ms I knew we had a problem before customers complained,
+            and traced it to an N+1 query.
+          </p>
+          <span class="connects">POSTMORTEM STORY</span>
+        </div>
+
+        <div class="term">
+          <h4>Error budget</h4>
+          <p class="def">
+            The unreliability a system can tolerate within its SLA. A 99.9%
+            uptime commitment leaves 0.1% to spend.
+          </p>
+          <p class="ex">
+            We had burned through the quarter's error budget after two major
+            incidents. That triggered a reliability sprint where fixing root
+            causes outranked new features.
+          </p>
+          <span class="connects">POSTMORTEM STORY</span>
+        </div>
+
+        <h3>Term to story mapping</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Story</th>
+              <th>Terms to work in</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Angular</td>
+              <td>
+                Adversarial mindset, threat hypothesis, attack surface, blast
+                radius, fixable, runbook, observability
+              </td>
+            </tr>
+            <tr>
+              <td>Postmortem</td>
+              <td>
+                Adversarial mindset, blast radius, postmortem, SLA and SLO,
+                error budget, toil
+              </td>
+            </tr>
+            <tr>
+              <td>AI</td>
+              <td>
+                Adversarial mindset, threat hypothesis, attack surface, fixable
+                vs. investigate, observability
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ===== 5 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 5</span>
+          <h2>The two-week sprint</h2>
+          <p class="sec-lede">
+            Roughly eighteen hours across ten working days, ending with three
+            polished diagnostic stories you can tell out loud.
+          </p>
+        </div>
+
+        <div class="phase-head">
+          <h3>Phase 1 · Angular sabotage lab</h3>
+          <span class="hrs">DAYS 1–3 · 5 HRS</span>
+        </div>
+        <div class="day">
+          <div class="when">Day 1<small>MON · 1.5H</small></div>
+          <div>
+            <h4>The setup</h4>
+            <ul>
+              <li>Fresh Angular 17 repo on GitHub</li>
+              <li>
+                Create <code>main</code> and
+                <code>experiment/leaky-subscription</code>
+              </li>
+              <li>
+                Simple component with a <code>BehaviorSubject</code> or
+                <code>interval()</code>
+              </li>
+              <li>Commit the clean code</li>
+              <li>Sticky note: "tomorrow, I will forget to unsubscribe"</li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Day 2<small>TUE · 1.5H</small></div>
+          <div>
+            <h4>Plant the bug</h4>
+            <ul>
+              <li>Drop the unsubscribe or the <code>takeUntil</code></li>
+              <li>Add a nav menu so you can route away and back</li>
+              <li>Verify it "works" with no console errors</li>
+              <li>Commit to the branch</li>
+              <li><b>Do not diagnose tonight. Walk away.</b></li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Day 3<small>WED · 1.5H</small></div>
+          <div>
+            <h4>Diagnose with tools only</h4>
+            <ul>
+              <li><b>Open the app. Do not look at the source code.</b></li>
+              <li>DevTools, Performance and Memory tabs</li>
+              <li>Navigate to the component and away ten times</li>
+              <li>Three heap snapshots; watch the JS heap climb</li>
+              <li>Write the five-step narrative — that's Story #1</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-head">
+          <h3>Phase 2 · Postmortem deconstruction</h3>
+          <span class="hrs">DAYS 4–5 · 3 HRS</span>
+        </div>
+        <div class="day">
+          <div class="when">Day 4<small>THU · 1.5H</small></div>
+          <div>
+            <h4>Pick the postmortem</h4>
+            <ul>
+              <li>Cloudflare blog or GitLab incident history</li>
+              <li>One write-up, 2,000–3,000 words</li>
+              <li>Print it or save as PDF</li>
+              <li>Read it once, passively</li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Day 5<small>FRI · 1.5H</small></div>
+          <div>
+            <h4>Rewrite it in first person</h4>
+            <ul>
+              <li>Rewrite the whole incident as the on-call engineer</li>
+              <li>
+                "At 14:03 UTC I noticed X. My initial thought was Y. I checked Z
+                to rule it out. The root cause was W. I explained it to the VP
+                by saying…"
+              </li>
+              <li>That's Story #2</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-head">
+          <h3>Phase 3 · AI-powered app failure</h3>
+          <span class="hrs">DAYS 6–8 · 5 HRS</span>
+        </div>
+        <div class="day">
+          <div class="when">Day 6<small>MON · 2H</small></div>
+          <div>
+            <h4>Build the customer emulator</h4>
+            <ul>
+              <li>
+                Node/Express server forwarding prompts to OpenAI or Ollama
+              </li>
+              <li>Simple Angular or React client</li>
+              <li>Get it working 100% correctly</li>
+              <li>Commit as the clean baseline</li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Day 7<small>TUE · 1.5H</small></div>
+          <div>
+            <h4>Plant the AI bug</h4>
+            <ul>
+              <li>Hallucination leak, or stale RAG</li>
+              <li>
+                Truncate the context window, or leave old vectors in place
+              </li>
+              <li>Confirm you see wrong output as the customer</li>
+              <li><b>Do not look at the server code yet.</b></li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Day 8<small>WED · 1.5H</small></div>
+          <div>
+            <h4>Diagnose under remote rules</h4>
+            <ul>
+              <li>Put the source code away</li>
+              <li>Only server logs, request and response payloads</li>
+              <li>
+                The prompt is missing the first fifteen chunks — smoking gun
+              </li>
+              <li>
+                Analogy: giving a chef only the last five ingredients from a
+                twenty-ingredient recipe
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-head">
+          <h3>Phase 4 · Synthesis and polish</h3>
+          <span class="hrs">DAYS 9–10 · 3 HRS</span>
+        </div>
+        <div class="day">
+          <div class="when">Day 9<small>THU · 1.5H</small></div>
+          <div>
+            <h4>Polish</h4>
+            <ul>
+              <li>Angular story: explanation as a one-sentence analogy</li>
+              <li>Postmortem rewrite: trim to one page</li>
+              <li>AI story: add the preventative recommendation</li>
+              <li>Add "in the future, I would…" to all three</li>
+            </ul>
+          </div>
+        </div>
+        <div class="day">
+          <div class="when">Day 10<small>FRI · 1.5H</small></div>
+          <div>
+            <h4>Mock interview</h4>
+            <ul>
+              <li>Record yourself on a voice memo</li>
+              <li>Three minutes, one story, out loud</li>
+              <li>Play it back — does it sound natural?</li>
+              <li>Email yourself "My 3 diagnostic war stories"</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="box">
+          <h4>
+            Bonus · target product misconfiguration
+            <span class="small">(3 hours, if time allows)</span>
+          </h4>
+          <ul>
+            <li>Choose Sentry or Supabase, free tier</li>
+            <li>Spin up a tiny app with their SDK</li>
+            <li>
+              Misconfigure deliberately: source map mismatch, or RLS policy
+              failure
+            </li>
+            <li>Document the error surfaces, write Story #4</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== 6 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 6</span>
+          <h2>Resume transformation</h2>
+          <p class="sec-lede">
+            Same work, different language. The five competencies below are what
+            support hiring managers scan for.
+          </p>
+        </div>
+
+        <ul class="chips">
+          <li>Diagnostic investigation</li>
+          <li>Customer communication</li>
+          <li>Tool proficiency</li>
+          <li>Incident response</li>
+          <li>Documentation &amp; knowledge sharing</li>
+        </ul>
+
+        <h3>The rewrite formula</h3>
+        <blockquote class="quote">
+          Diagnosed [problem] affecting [impact] using [tools]. Identified root
+          cause as [specific issue]. Communicated findings to [audience] and
+          documented the fix in [artifact]. Implemented [preventative action] to
+          prevent recurrence.
+        </blockquote>
+
+        <h3>Before and after</h3>
+        <div class="ba">
+          <div>
+            <p class="t">FRONTEND PHRASING</p>
+            <p>
+              Fixed a memory leak in the Angular dashboard that was causing
+              performance issues.
+            </p>
+          </div>
+          <div class="after">
+            <p class="t">SUPPORT PHRASING</p>
+            <p>
+              Diagnosed and resolved a memory leak in a high-traffic Angular
+              dashboard degrading performance for 5,000+ daily users. Used
+              Chrome DevTools heap snapshots to identify unsubscribed
+              observables, reduced memory consumption by 40%, and documented the
+              fix in the team runbook.
+            </p>
+          </div>
+        </div>
+
+        <h3>Core competencies section</h3>
+        <div class="box">
+          <div class="cols2 small">
+            <p>Incident diagnosis &amp; root cause analysis</p>
+            <p>Production debugging — Chrome DevTools, Sentry, LogRocket</p>
+            <p>Customer-facing technical communication</p>
+            <p>Postmortem writing &amp; runbook documentation</p>
+            <p>API &amp; data flow troubleshooting — REST, GraphQL</p>
+            <p>Performance optimization &amp; memory profiling</p>
+            <p>CI/CD &amp; deployment pipelines</p>
+            <p>Test-driven development — TDD, E2E, unit</p>
+          </div>
+        </div>
+
+        <h3>Projects section</h3>
+        <div class="box">
+          <h4>Diagnostic Simulation Lab · 2026</h4>
+          <ul class="small">
+            <li>
+              Designed and executed a structured diagnostic training program
+              simulating real-world support scenarios.
+            </li>
+            <li>
+              Built an Angular application with deliberate bugs — memory leaks,
+              subscription leaks — and diagnosed them using Chrome DevTools heap
+              snapshots and performance profiling.
+            </li>
+            <li>
+              Constructed an AI-powered customer emulator with Node/Express and
+              OpenAI to simulate hallucination and RAG retrieval failures,
+              diagnosing root causes with token counters and prompt logs.
+            </li>
+            <li>
+              Documented three full diagnostic narratives using
+              industry-standard postmortem structures, inspired by Cloudflare
+              and GitLab.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===== 7 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 7</span>
+          <h2>Open source contribution</h2>
+          <p class="sec-lede">
+            One finished "good first issue" is worth more than five abandoned
+            ones. Time-box it hard.
+          </p>
+        </div>
+
+        <h3>Where to find issues</h3>
+        <ul class="chips">
+          <li>GitHub: "good first issue" + language:TypeScript</li>
+          <li>OpenSeed</li>
+          <li>HelpWanted.dev</li>
+          <li>CLI: good-first-issue</li>
+        </ul>
+
+        <h3>Introduction message</h3>
+        <div class="script">
+          <h4>
+            Subject: Interested in working on [Issue Title] (#[Issue Number])
+          </h4>
+          <p>Hello [Project Name] team,</p>
+          <p>
+            My name is [Your Name] and I've been following this project for a
+            while. I'm an engineer with over 10 years of experience in
+            TypeScript and the Angular ecosystem, and I'm looking to contribute
+            to open source.
+          </p>
+          <p>
+            I came across issue #[Issue Number] about [briefly describe the
+            issue] and I'm interested in taking it on. I've read through the
+            CONTRIBUTING.md guide and have the development environment set up.
+          </p>
+          <p>
+            Before I start, I have a couple of clarifying questions about
+            [specific aspect]. Do you have any additional context or tips that
+            might be helpful? If this issue is still available, I'd be glad to
+            get started.
+          </p>
+          <p>Thank you for your time, and for maintaining this project.</p>
+          <p>Best,<br />[Your Name] · [GitHub profile]</p>
+        </div>
+
+        <h3>Before you start</h3>
+        <ul class="tick">
+          <li>
+            <span class="sq"></span
+            ><span>Confirm the issue is still open and unassigned</span>
+          </li>
+          <li>
+            <span class="sq"></span
+            ><span>Read CONTRIBUTING.md and README.md</span>
+          </li>
+          <li>
+            <span class="sq"></span
+            ><span
+              >Check the project is active — recent commits, 100+ stars</span
+            >
+          </li>
+          <li>
+            <span class="sq"></span
+            ><span
+              >Set a time limit — one to two hours for a good first issue</span
+            >
+          </li>
+        </ul>
+      </section>
+
+      <!-- ===== 8 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 8</span>
+          <h2>Red-team projects to contribute to</h2>
+          <p class="sec-lede">
+            The other half of the open source pathway — projects where you
+            practise the adversarial mindset on real tooling.
+          </p>
+        </div>
+
+        <h3>Adversary emulation and testing frameworks</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>What it is</th>
+              <th>How to contribute</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Apache Caldera</td>
+              <td>
+                Automated adversary emulation built on MITRE ATT&amp;CK, used
+                for red and purple teaming.
+              </td>
+              <td>
+                Code, plugins, or docs via the Apache Incubator community.
+              </td>
+            </tr>
+            <tr>
+              <td>RedAmon</td>
+              <td>
+                An AI agent following structured attack "skills" during pentest
+                sessions; community skills are Markdown files.
+              </td>
+              <td>
+                Write attack skill files — API testing, XSS, SQL injection.
+              </td>
+            </tr>
+            <tr>
+              <td>OpenRT</td>
+              <td>
+                Modular red-teaming framework for multimodal LLM safety,
+                integrating 37 attack methodologies.
+              </td>
+              <td>Framework development, new attack modules, model testing.</td>
+            </tr>
+            <tr>
+              <td>OWASP OWTF</td>
+              <td>
+                Offensive Web Testing Framework, aligned with the OWASP testing
+                guides.
+              </td>
+              <td>Development, tool integration, report automation.</td>
+            </tr>
+            <tr>
+              <td>Adversarial Testing Framework</td>
+              <td>
+                A repair loop that fixes bugs then mutation-tests the suite to
+                prove the tests catch regressions.
+              </td>
+              <td>
+                Code, testing against your own repos, new language support.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Fuzzing and security testing</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>What it is</th>
+              <th>How to contribute</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>OSS-Fuzz</td>
+              <td>
+                Google's continuous fuzzing service; 13,000+ vulnerabilities and
+                50,000+ bugs found across ~1,000 projects.
+              </td>
+              <td>
+                Integrate projects, write fuzz targets, work on ClusterFuzz.
+              </td>
+            </tr>
+            <tr>
+              <td>Wider fuzzing ecosystem</td>
+              <td>
+                <code>syzkaller</code> for kernels, <code>AFL++</code> for
+                general use, plus domain-specific fuzzers.
+              </td>
+              <td>
+                Write harnesses for libraries or protocols; help with testing.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Documentation and educational</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>What it is</th>
+              <th>How to contribute</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>OWASP Web Security Testing Guide</td>
+              <td>
+                Comprehensive open source guide to web application security
+                testing. Needs authors, reviewers, editors.
+              </td>
+              <td>
+                Review for technical accuracy, or edit for clarity and brevity.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>How to pick one</h3>
+        <ul class="principles">
+          <li>
+            <b>Start with documentation or playbooks.</b> The OWASP WSTG fits
+            your language skills. Reviewing a section on one vulnerability class
+            sharpens technical knowledge and feeds straight into interview
+            stories.
+          </li>
+          <li>
+            <b>Connect it to the diagnostic work.</b> Your Angular and AI
+            experiments are already an adversarial testing lab. OSS-Fuzz extends
+            that from building your own bugs to improving the tools that find
+            them.
+          </li>
+          <li>
+            <b>Lead with the frontend depth.</b> The web-focused projects need
+            people who understand client-side vulnerabilities and how to test
+            for them.
+          </li>
+        </ul>
+      </section>
+
+      <!-- ===== 9 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 9</span>
+          <h2>Support ticketing software</h2>
+          <p class="sec-lede">
+            Know the landscape well enough to have an opinion. One sentence per
+            tool is enough.
+          </p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Tool</th>
+              <th>Category</th>
+              <th>Why it gets chosen</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Zendesk</td>
+              <td>Help desk</td>
+              <td>Mature, omnichannel, powerful automation</td>
+            </tr>
+            <tr>
+              <td>Freshdesk</td>
+              <td>Help desk</td>
+              <td>User-friendly, strong automation, AI assistance</td>
+            </tr>
+            <tr>
+              <td>Zoho Desk</td>
+              <td>Help desk</td>
+              <td>Cost-effective, good for smaller teams</td>
+            </tr>
+            <tr>
+              <td>HappyFox</td>
+              <td>Help desk</td>
+              <td>Robust ticket task management</td>
+            </tr>
+            <tr>
+              <td>Jira Service Management</td>
+              <td>ITSM</td>
+              <td>Excellent for DevOps and technical teams</td>
+            </tr>
+            <tr>
+              <td>ServiceNow</td>
+              <td>ITSM</td>
+              <td>Enterprise-grade, complex IT environments</td>
+            </tr>
+            <tr>
+              <td>Freshservice</td>
+              <td>ITSM</td>
+              <td>Strong AI, easy to adopt</td>
+            </tr>
+            <tr>
+              <td>HubSpot Service Hub</td>
+              <td>Emerging</td>
+              <td>Tied directly to the customer CRM</td>
+            </tr>
+            <tr>
+              <td>Microsoft Teams Ticketing</td>
+              <td>Emerging</td>
+              <td>Converts chats into tickets</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <blockquote class="quote">
+          In my workflow we used [tool] to track tickets, which was great
+          because [specific capability that helped you].
+        </blockquote>
+      </section>
+
+      <!-- ===== 10 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 10</span>
+          <h2>Job titles for alerts</h2>
+          <p class="sec-lede">
+            Three families of title. Set alerts across all of them — the same
+            role gets named very differently by different companies.
+          </p>
+        </div>
+
+        <h4>Core support engineering</h4>
+        <ul class="chips">
+          <li>Technical Support Engineer</li>
+          <li>Support Engineer</li>
+          <li>Customer Support Engineer</li>
+          <li>Customer Success Engineer</li>
+        </ul>
+
+        <h4>Red team and offensive security</h4>
+        <ul class="chips">
+          <li>Red Team Operator</li>
+          <li>Red Team Specialist</li>
+          <li>Purple Team Engineer</li>
+          <li>AI Red Team Operator</li>
+          <li>Product Security Engineer (AI focus)</li>
+        </ul>
+
+        <h4>Adjacent and emerging</h4>
+        <ul class="chips">
+          <li>Site Reliability Engineer</li>
+          <li>Technical Support Call Center Representative</li>
+          <li>Information Technology Support Engineer</li>
+        </ul>
+
+        <div class="notes">
+          <p class="lbl">TITLES I'VE SEEN IN LISTINGS</p>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </section>
+
+      <!-- ===== 11 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 11</span>
+          <h2>The hidden job market</h2>
+          <p class="sec-lede">
+            A large share of roles are filled through networks and referrals
+            rather than public postings. You're not asking for a job — you're
+            becoming a known quantity before the job exists.
+          </p>
+        </div>
+
+        <blockquote class="quote">
+          It's not about what you know, it's about who knows you.
+        </blockquote>
+
+        <h3>Phase 1 · Prepare</h3>
+        <p>
+          Build a list of 20–30 tech-first companies hiring support engineers
+          and SREs without live coding challenges. Then find the people inside
+          them who would be your future manager or senior colleague.
+        </p>
+        <ul class="chips">
+          <li>Support Engineering Manager</li>
+          <li>Director of Support</li>
+          <li>Senior SRE</li>
+          <li>Principal Support Engineer</li>
+          <li>Technical Support Lead</li>
+        </ul>
+        <p class="small">
+          Your profile has to carry the story before you say a word: ten-plus
+          years of frontend, reframed around the diagnostic and support work you
+          actually did.
+        </p>
+
+        <h3>Phase 2 · Reach out</h3>
+        <div class="script">
+          <p>
+            Hi [Name], I came across your profile and was impressed by your
+            experience in [support / SRE] at [Company]. I'm a senior frontend
+            engineer with a strong background in [key skill] looking to
+            transition into a support engineering role. I'd love to connect and
+            learn more about your journey, and any advice you might have. Would
+            you be open to a quick 15-minute virtual coffee to chat?
+          </p>
+        </div>
+
+        <h4>Questions worth asking</h4>
+        <ul class="small">
+          <li>
+            How did you get started in this field, and what has your career path
+            looked like?
+          </li>
+          <li>
+            What does a typical day look like for you as a [support manager /
+            SRE lead]?
+          </li>
+          <li>
+            What skills matter most for success in this role at [Company]?
+          </li>
+          <li>
+            What's something you wish you'd known when you were in a similar
+            position?
+          </li>
+        </ul>
+        <div class="heur">
+          <span class="tag">GOLDEN QUESTION</span>
+          <p>Do you know anyone else you think I should speak with?</p>
+        </div>
+        <div class="heur">
+          <span class="tag">GOLDEN RULE</span>
+          <p>
+            Respect their time. If you said fifteen minutes, be done in fifteen
+            minutes — unless they're the one who extends it.
+          </p>
+        </div>
+
+        <h3>Phase 3 · Cultivate</h3>
+        <ul class="principles">
+          <li>
+            <b>Follow up within 24 hours.</b> A personalized thank-you naming a
+            specific insight, not a form note.
+          </li>
+          <li>
+            <b>Don't let it go cold.</b> Comment on their posts, send a relevant
+            article, or check in months later with an update.
+          </li>
+          <li>
+            <b>Offer value first.</b> Pass on a posting that fits someone in
+            their network. Goodwill is reciprocal.
+          </li>
+        </ul>
+
+        <h3>Pitfalls</h3>
+        <ul class="principles">
+          <li>
+            <b>Don't ask for a job.</b> The point is information and rapport,
+            not an offer on the spot.
+          </li>
+          <li>
+            <b>Don't send a generic message.</b> Show you've done the research.
+          </li>
+          <li>
+            <b>Don't sound robotic.</b> Adapt the template until it sounds like
+            you in a coffee shop.
+          </li>
+        </ul>
+      </section>
+
+      <!-- ===== 12 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 12</span>
+          <h2>Interview scripts</h2>
+          <p class="sec-lede">
+            Three answers worth having ready word-for-word, then loosening until
+            they sound like you.
+          </p>
+        </div>
+
+        <div class="script">
+          <h4>The title gap — when they ask about your frontend background</h4>
+          <p>
+            That's a great question. While my official title was frontend
+            engineer, a significant portion of my work was actually support
+            engineering in disguise. I was the person the team came to when a
+            production issue was too complex to diagnose. I traced bugs across
+            the whole stack, communicated findings to non-technical
+            stakeholders, and wrote runbooks so the team could resolve issues
+            faster. I realized I was most energized not by building new
+            features, but by diagnosing complex problems and helping customers —
+            so I decided to formalize that skillset and pursue support
+            engineering directly.
+          </p>
+        </div>
+
+        <div class="script">
+          <h4>The cold start — when you can't reproduce it locally</h4>
+          <p>I'd ask the customer for three things:</p>
+          <ol>
+            <li>Their exact input or request payload</li>
+            <li>Their session ID or request ID</li>
+            <li>A HAR file — a network trace from their browser</li>
+          </ol>
+          <p>
+            With those I can replay their request against staging with debug
+            logging on. That's how I found the root cause — the logs showed the
+            specific evidence. I didn't need to remote into their machine, I
+            just needed their data.
+          </p>
+        </div>
+
+        <div class="script">
+          <h4>The red-team connection — showing you see the big picture</h4>
+          <p>
+            I approach diagnostic work the same way I'd approach a red-team
+            security review. The goal isn't to confirm the system works, it's to
+            actively hunt for failure modes. When a customer reports a problem,
+            I treat their symptom as an attack surface. I start with a
+            hypothesis, use tools to narrow it, and classify the root cause as
+            either fixable — I have a solution — or investigate, meaning it
+            needs deeper research. My postmortem write-ups always include a
+            preventative recommendation, which is the same as the actionable
+            results phase of a red-team workflow. This mindset has helped me
+            consistently find root causes that others miss.
+          </p>
+        </div>
+      </section>
+
+      <!-- ===== 13 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 13</span>
+          <h2>Quick reference</h2>
+          <p class="sec-lede">
+            The toolbox by category, and the acronyms you should be able to
+            expand without pausing.
+          </p>
+        </div>
+
+        <div class="cols2">
+          <div class="toolbox">
+            <h4>Frontend debugging</h4>
+            <ul>
+              <li>DevTools → Memory → Heap snapshot</li>
+              <li>DevTools → Performance → Record</li>
+              <li>DevTools → Network → Headers / Response</li>
+              <li>Angular DevTools — component tree</li>
+              <li><span class="m">performance.memory</span></li>
+              <li><span class="m">NgZone.isInAngularZone()</span></li>
+            </ul>
+          </div>
+
+          <div class="toolbox">
+            <h4>Backend and API</h4>
+            <ul>
+              <li><span class="m">curl -v</span></li>
+              <li><span class="m">EXPLAIN ANALYZE</span> (PostgreSQL)</li>
+              <li><span class="m">explain()</span> (MongoDB)</li>
+              <li>
+                Redis CLI <span class="m">KEYS *</span> /
+                <span class="m">INFO</span>
+              </li>
+              <li>New Relic, Datadog traces</li>
+            </ul>
+          </div>
+
+          <div class="toolbox">
+            <h4>AI and LLM</h4>
+            <ul>
+              <li>LangSmith, Arize, LangFuse</li>
+              <li><span class="m">tiktoken</span> — count tokens</li>
+              <li>Pinecone, Weaviate, Qdrant</li>
+              <li>Promptfoo — A/B prompts</li>
+              <li>OpenAI logprobs</li>
+            </ul>
+          </div>
+
+          <div class="toolbox">
+            <h4>Infrastructure</h4>
+            <ul>
+              <li>
+                <span class="m">diff</span> dev/prod <span class="m">.env</span>
+              </li>
+              <li><span class="m">npm ls --depth=0</span></li>
+              <li><span class="m">docker inspect</span></li>
+              <li>
+                <span class="m">kubectl logs</span> /
+                <span class="m">describe</span>
+              </li>
+              <li>CloudWatch, GCP Logging, Sentry</li>
+            </ul>
+          </div>
+
+          <div class="toolbox">
+            <h4>Concurrency</h4>
+            <ul>
+              <li>Thread dumps, <span class="m">pstree</span></li>
+              <li><span class="m">SELECT … FOR UPDATE</span></li>
+              <li>
+                Redis <span class="m">INCR</span> / <span class="m">DECR</span>
+              </li>
+              <li>Jaeger, Zipkin</li>
+            </ul>
+          </div>
+
+          <div class="toolbox">
+            <h4>Observability</h4>
+            <ul>
+              <li>ELK stack</li>
+              <li>Sentry — uncaught exceptions</li>
+              <li>OpenTelemetry</li>
+              <li>Nginx error logs</li>
+              <li>PM2 logs</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>Acronyms</h3>
+        <table class="acr">
+          <tbody>
+            <tr>
+              <td>RAG</td>
+              <td>Retrieval-augmented generation — vector DB plus LLM</td>
+            </tr>
+            <tr>
+              <td>RLS</td>
+              <td>Row level security — Supabase, PostgreSQL</td>
+            </tr>
+            <tr>
+              <td>TTPs</td>
+              <td>Tactics, techniques, and procedures</td>
+            </tr>
+            <tr>
+              <td>TDD</td>
+              <td>Test-driven development</td>
+            </tr>
+            <tr>
+              <td>e2e</td>
+              <td>End-to-end testing</td>
+            </tr>
+            <tr>
+              <td>CI/CD</td>
+              <td>Continuous integration / continuous deployment</td>
+            </tr>
+            <tr>
+              <td>HAR</td>
+              <td>HTTP archive — a network trace file</td>
+            </tr>
+            <tr>
+              <td>ASR</td>
+              <td>Attack success rate — an AI red-teaming metric</td>
+            </tr>
+            <tr>
+              <td>LLM</td>
+              <td>Large language model</td>
+            </tr>
+            <tr>
+              <td>ORM</td>
+              <td>Object-relational mapper</td>
+            </tr>
+            <tr>
+              <td>ELK</td>
+              <td>Elasticsearch, Logstash, Kibana</td>
+            </tr>
+            <tr>
+              <td>RPO</td>
+              <td>Recovery point objective — data loss tolerance</td>
+            </tr>
+            <tr>
+              <td>RTO</td>
+              <td>Recovery time objective — downtime tolerance</td>
+            </tr>
+            <tr>
+              <td>SLA</td>
+              <td>Service level agreement — customer commitment</td>
+            </tr>
+            <tr>
+              <td>SLO</td>
+              <td>Service level objective — internal target</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ===== 14 ===== -->
+      <section>
+        <div class="sec-head">
+          <span class="sec-num">Section 14</span>
+          <h2>My diagnostic war stories</h2>
+          <p class="sec-lede">
+            Fill these in by hand as you finish each lab. Writing them out
+            longhand is slower than typing, which is the point — you are
+            rehearsing, not documenting.
+          </p>
+        </div>
+
+        <div class="story">
+          <h3>Story #1</h3>
+          <p class="sub">Angular subscription leak · performance</p>
+          <div class="wfield">
+            <p class="lbl">SYMPTOM</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">INITIAL THOUGHT</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">HOW I NARROWED IT</p>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">ROOT CAUSE</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">HOW I EXPLAINED IT</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="reflect">
+            <p class="rt">RED-TEAM REFLECTION</p>
+            <div class="wfield">
+              <p class="lbl">ATTACK SURFACE I WAS HUNTING</p>
+              <div class="line"></div>
+            </div>
+            <div class="wfield">
+              <p class="lbl">MY ADVERSARIAL SCANNER (TOOL)</p>
+              <div class="line"></div>
+            </div>
+            <div class="wfield">
+              <p class="lbl">FIXABLE OR INVESTIGATE?</p>
+              <div class="line"></div>
+            </div>
+            <div class="wfield">
+              <p class="lbl">PREVENTATIVE RECOMMENDATION</p>
+              <div class="line"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="story">
+          <h3>Story #2</h3>
+          <p class="sub">Postmortem rewrite · Cloudflare, GitLab, or Stripe</p>
+          <div class="wfield">
+            <p class="lbl">SYMPTOM</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">INITIAL THOUGHT</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">HOW I NARROWED IT</p>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">ROOT CAUSE</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">HOW I EXPLAINED IT</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="reflect">
+            <p class="rt">RED-TEAM REFLECTION</p>
+            <div class="wfield">
+              <p class="lbl">ATTACK SURFACE I WAS HUNTING</p>
+              <div class="line"></div>
+            </div>
+            <div class="wfield">
+              <p class="lbl">BLAST RADIUS</p>
+              <div class="line"></div>
+            </div>
+            <div class="wfield">
+              <p class="lbl">FIXABLE OR INVESTIGATE?</p>
+              <div class="line"></div>
+            </div>
+            <div class="wfield">
+              <p class="lbl">PREVENTATIVE RECOMMENDATION</p>
+              <div class="line"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="story">
+          <h3>Story #3</h3>
+          <p class="sub">AI customer emulator · hallucination or stale RAG</p>
+          <div class="wfield">
+            <p class="lbl">SYMPTOM</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">INITIAL THOUGHT</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">HOW I NARROWED IT</p>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">ROOT CAUSE</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="wfield">
+            <p class="lbl">HOW I EXPLAINED IT</p>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+          <div class="reflect">
+            <p class="rt">RED-TEAM REFLECTION</p>
+            <div class="wfield">
+              <p class="lbl">ATTACK SURFACE I WAS HUNTING</p>
+              <div class="line"></div>
+            </div>
+            <div class="wfield">
+              <p class="lbl">MY ADVERSARIAL SCANNER (TOOL)</p>
+              <div class="line"></div>
+            </div>
+            <div class="wfield">
+              <p class="lbl">FIXABLE OR INVESTIGATE?</p>
+              <div class="line"></div>
+            </div>
+            <div class="wfield">
+              <p class="lbl">PREVENTATIVE RECOMMENDATION</p>
+              <div class="line"></div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="doc">
+          <span>Red Team Workflow — support engineering field guide</span>
+          <span class="m">6 classes · 12 terms · 10 days</span>
+        </footer>
+      </section>
+    </div>
+  </body>
+</html>

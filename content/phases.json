@@ -1,0 +1,422 @@
+[
+  {
+    "id": "receive",
+    "number": 0,
+    "name": "Receive",
+    "purpose": "Establish the ticket as a tracked unit of work with a defensible timestamp.",
+    "prompts": [
+      {
+        "id": "acknowledged",
+        "label": "Acknowledged receipt to the reporter?",
+        "type": "boolean",
+        "required": true,
+        "help": "This sets expectations and starts the clock."
+      },
+      {
+        "id": "reporter",
+        "label": "Reporter identity and channel",
+        "type": "text",
+        "required": true,
+        "help": "Who reported it, and through what channel."
+      },
+      {
+        "id": "reportedAt",
+        "label": "Timestamp of the report",
+        "type": "datetime",
+        "required": true
+      },
+      {
+        "id": "onsetAt",
+        "label": "Perceived onset, if different from the report",
+        "type": "datetime",
+        "required": false,
+        "help": "When the reporter believes the problem actually started."
+      },
+      {
+        "id": "environment",
+        "label": "Environment",
+        "type": "text",
+        "required": true,
+        "help": "Production, staging, a specific tenant, a specific region."
+      },
+      {
+        "id": "affected",
+        "label": "Affected users or tenants",
+        "type": "text",
+        "required": true
+      },
+      {
+        "id": "evidence",
+        "label": "Attached evidence",
+        "type": "textarea",
+        "required": false,
+        "help": "Screenshots, log excerpts, links, anything the reporter provided."
+      },
+      {
+        "id": "missing",
+        "label": "What was NOT provided",
+        "type": "textarea",
+        "required": true,
+        "help": "That absence is your first set of clarifying questions."
+      }
+    ],
+    "mindset": [
+      "What is the minimum I need to know before I can decide how urgent this is?",
+      "Who else needs to know that this ticket exists?"
+    ],
+    "antiPatterns": [
+      "Jumping to a fix before understanding the symptom.",
+      "Marking as resolved because the reporter went quiet. The issue may still be live.",
+      "Assuming the reported symptom is the actual problem. Reporters describe what they see, not what is broken."
+    ],
+    "output": "Ticket with metadata and provisional priority"
+  },
+  {
+    "id": "parse",
+    "number": 1,
+    "name": "Parse the reported symptom",
+    "purpose": "Separate the symptom the reporter observed from the hypothesis they formed from the defect that actually exists.",
+    "prompts": [
+      {
+        "id": "restated",
+        "label": "Restate the problem in your own words",
+        "type": "textarea",
+        "required": true,
+        "help": "This surfaces misunderstandings early and costs nothing."
+      },
+      {
+        "id": "observableFacts",
+        "label": "Observable facts",
+        "type": "textarea",
+        "required": true,
+        "help": "What the user did, what they expected, what happened instead, when it started, whether it is still happening, whether it reproduces consistently."
+      },
+      {
+        "id": "reporterHypothesis",
+        "label": "The reporter's diagnosis (set aside)",
+        "type": "textarea",
+        "required": false,
+        "help": "Record the theory, but treat it as a hypothesis to test rather than a fact to build on."
+      },
+      {
+        "id": "scope",
+        "label": "Scope",
+        "type": "textarea",
+        "required": true,
+        "help": "One user or many, one feature or several, one environment or all, one region or global."
+      },
+      {
+        "id": "clarifyingQuestions",
+        "label": "Clarifying questions asked",
+        "type": "textarea",
+        "required": false,
+        "help": "Specific and closed-ended: does this happen in incognito mode, does it happen on another device, what time did you first notice, what is the exact error text."
+      }
+    ],
+    "mindset": [
+      "Is this a symptom I have seen before, or is it novel?",
+      "What would have to be true for this report to be accurate?"
+    ],
+    "antiPatterns": [],
+    "output": "Restated problem, scope, clarifying questions"
+  },
+  {
+    "id": "classify",
+    "number": 2,
+    "name": "Classify",
+    "purpose": "Assign a category — what kind of problem — and a severity — how urgent. These two axes drive everything downstream.",
+    "prompts": [
+      {
+        "id": "category",
+        "label": "Category",
+        "type": "select",
+        "required": true,
+        "source": "categories",
+        "help": "Assigned from the taxonomy, based on Phase 1 evidence."
+      },
+      {
+        "id": "severity",
+        "label": "Provisional severity",
+        "type": "select",
+        "required": true,
+        "source": "severity",
+        "help": "By impact: how many users, how critical the function, whether a workaround exists, whether data is at risk, whether a deadline or regulatory obligation applies."
+      },
+      {
+        "id": "severityReconsidered",
+        "label": "Severity reconsidered?",
+        "type": "boolean",
+        "required": true,
+        "help": "The most common assessment error is under-classifying an early ticket that later proves severe."
+      },
+      {
+        "id": "duplicateOf",
+        "label": "Duplicate of an existing ticket?",
+        "type": "text",
+        "required": false,
+        "help": "If this is the same issue as another open ticket, link them."
+      },
+      {
+        "id": "securityChecked",
+        "label": "Checked against a security lens?",
+        "type": "boolean",
+        "required": true,
+        "help": "Every unknown ticket deserves a check for a security issue in disguise."
+      }
+    ],
+    "mindset": [
+      "If I were the customer, how bad would this be?",
+      "What is the worst-case interpretation of this report?",
+      "Is there any way this is a security issue in disguise?"
+    ],
+    "antiPatterns": [
+      "Inflating severity to get attention. It erodes trust in the whole scale.",
+      "Deflating severity because the reporter is junior or the symptom seems trivial.",
+      "Skipping the security question. Every unknown ticket deserves a check against a security lens."
+    ],
+    "output": "Provisional category and severity"
+  },
+  {
+    "id": "contextualize",
+    "number": 3,
+    "name": "Contextualize",
+    "purpose": "Enrich the ticket with everything the system already knows about itself, so the assessment rests on evidence rather than speculation.",
+    "prompts": [
+      {
+        "id": "recentChanges",
+        "label": "Recent changes",
+        "type": "textarea",
+        "required": true,
+        "help": "Deploys, config changes and infrastructure changes in the last 24 to 72 hours; feature flag toggles, schema migrations, credential rotations; third-party incidents reported by vendors."
+      },
+      {
+        "id": "serviceHealth",
+        "label": "Service health",
+        "type": "textarea",
+        "required": true,
+        "help": "Dashboards for the affected service, SLO burn rate, error rate, latency, saturation, dependency health. Is this isolated, or the leading edge of a trend?"
+      },
+      {
+        "id": "errorTracker",
+        "label": "Error tracker",
+        "type": "textarea",
+        "required": false,
+        "help": "Is the reported error already captured, at what frequency, on which release, with what stack trace?"
+      },
+      {
+        "id": "logsAndTraces",
+        "label": "Logs and traces",
+        "type": "textarea",
+        "required": false,
+        "help": "Search by user ID, transaction ID or timestamp, and look for correlated errors in a window around the report."
+      },
+      {
+        "id": "rumAndReplay",
+        "label": "RUM and session replay",
+        "type": "textarea",
+        "required": false,
+        "help": "Where the report is user-facing: what did the user actually see, and what did they actually do?"
+      },
+      {
+        "id": "patterns",
+        "label": "Patterns",
+        "type": "textarea",
+        "required": false,
+        "help": "Are others reporting similar symptoms, is this a known recurrence, is this the first of a wave?"
+      },
+      {
+        "id": "evidenceBundle",
+        "label": "Evidence bundle",
+        "type": "textarea",
+        "required": true,
+        "help": "Relevant deploys, dashboard snapshots, error tracker links, log excerpts, and replay links, gathered in one place. This is what supports the Phase 4 decision, and what gets handed over if the ticket is escalated."
+      }
+    ],
+    "mindset": [
+      "What changed recently? Most incidents correlate with a change.",
+      "What does the system say about itself, independent of what the reporter said?",
+      "What would I see if this were systemic rather than a one-off?"
+    ],
+    "antiPatterns": [],
+    "output": "Evidence bundle"
+  },
+  {
+    "id": "triage",
+    "number": 4,
+    "name": "Triage and decide",
+    "purpose": "Commit to a path: resolve at the desk, escalate to a team, declare an incident, or request more information.",
+    "prompts": [
+      {
+        "id": "decision",
+        "label": "Named decision",
+        "type": "select",
+        "required": true,
+        "options": [
+          {
+            "value": "declare_incident",
+            "label": "Declare an incident (SEV1–SEV2)"
+          },
+          { "value": "resolve", "label": "Follow the runbook and resolve" },
+          {
+            "value": "investigate",
+            "label": "Investigate — this becomes a work ticket"
+          },
+          { "value": "escalate", "label": "Escalate with the evidence bundle" },
+          {
+            "value": "request_info",
+            "label": "Request specific information and pause the ticket"
+          }
+        ],
+        "help": "Decision tree: Is impact severe or growing? Is the cause known with a runbook? Is the issue within my team's ownership? Is it clearly owned by another team? Is the report ambiguous?"
+      },
+      {
+        "id": "reasoning",
+        "label": "Reasoning",
+        "type": "textarea",
+        "required": true,
+        "help": "Name the decision out loud — \"I am declaring an incident\" is a decision."
+      },
+      {
+        "id": "whatWouldChangeMyMind",
+        "label": "What evidence would change my mind?",
+        "type": "textarea",
+        "required": true,
+        "help": "If nothing would, you have stopped assessing."
+      }
+    ],
+    "mindset": [
+      "What is the cost of being wrong in each direction? A delayed incident is worse than a false alarm; a needless page is worse than a ticket.",
+      "What is the specific decision I am making right now?",
+      "What evidence would change my mind?"
+    ],
+    "antiPatterns": [],
+    "output": "Named decision with reasoning"
+  },
+  {
+    "id": "act",
+    "number": 5,
+    "name": "Act",
+    "purpose": "Execute the chosen path, with discipline.",
+    "prompts": [
+      {
+        "id": "path",
+        "label": "Path taken",
+        "type": "select",
+        "required": true,
+        "options": [
+          { "value": "runbook", "label": "Resolved via runbook" },
+          { "value": "novel", "label": "Investigated a novel issue" },
+          { "value": "incident_lead", "label": "Led an incident" },
+          { "value": "escalation", "label": "Escalated to another team" }
+        ],
+        "help": "Determined by the Phase 4 decision."
+      },
+      {
+        "id": "actionsTaken",
+        "label": "Actions taken",
+        "type": "textarea",
+        "required": true,
+        "help": "Execute steps in order, checking expected output after each. If output deviates, stop and reassess. Do not improvise under pressure."
+      },
+      {
+        "id": "deviations",
+        "label": "Deviations from runbook or expectation",
+        "type": "textarea",
+        "required": false,
+        "help": "Note any deviation for later improvement."
+      },
+      {
+        "id": "outcome",
+        "label": "Outcome",
+        "type": "textarea",
+        "required": true,
+        "help": "Confirm resolution against the original symptom, not merely the runbook's success criterion."
+      }
+    ],
+    "mindset": [
+      "Am I making the system better, or just making the symptom go away?",
+      "What would I want to know if I were the person taking over from me?",
+      "Is the clock still running, and does the customer know what is happening?"
+    ],
+    "antiPatterns": [],
+    "output": "Resolution, mitigation, or handoff"
+  },
+  {
+    "id": "record",
+    "number": 6,
+    "name": "Record and close",
+    "purpose": "Close the loop: update the ticket, update the knowledge base, and where warranted trigger the post-incident process.",
+    "prompts": [
+      {
+        "id": "ticketUpdated",
+        "label": "Ticket updated with resolution, cause, evidence, time, follow-ups?",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "id": "postMortemNeeded",
+        "label": "Post-mortem needed?",
+        "type": "boolean",
+        "required": true,
+        "help": "Always for SEV1 and SEV2; likely for a SEV3 with an unusual cause; not for a known issue resolved by runbook."
+      },
+      {
+        "id": "runbookUpdated",
+        "label": "Runbook amended or added?",
+        "type": "boolean",
+        "required": false,
+        "help": "Amend if it was incomplete; add one if the issue was novel and will recur."
+      },
+      {
+        "id": "alertAdded",
+        "label": "Alert added?",
+        "type": "boolean",
+        "required": false,
+        "help": "Add if detection was slow."
+      },
+      {
+        "id": "testAdded",
+        "label": "Test added?",
+        "type": "boolean",
+        "required": false,
+        "help": "Add if the defect should have been caught earlier."
+      },
+      {
+        "id": "broadcast",
+        "label": "Learning broadcast to other teams?",
+        "type": "boolean",
+        "required": false,
+        "help": "Where the issue is likely to recur or affects other teams."
+      },
+      {
+        "id": "learning",
+        "label": "What would the next responder need that they did not have this time?",
+        "type": "textarea",
+        "required": true
+      },
+      {
+        "id": "phaseThatMattered",
+        "label": "Which phase changed the outcome?",
+        "type": "select",
+        "required": true,
+        "options": [
+          { "value": "receive", "label": "0 · Receive" },
+          { "value": "parse", "label": "1 · Parse" },
+          { "value": "classify", "label": "2 · Classify" },
+          { "value": "contextualize", "label": "3 · Contextualize" },
+          { "value": "triage", "label": "4 · Triage" },
+          { "value": "act", "label": "5 · Act" },
+          { "value": "record", "label": "6 · Record" }
+        ],
+        "help": "This is the column that turns a case log into a portfolio artifact."
+      }
+    ],
+    "mindset": [
+      "What would the next responder need that they did not have this time?",
+      "Did this ticket produce any change to the system, or only a resolution?",
+      "Would I recognize this same issue faster next time?"
+    ],
+    "antiPatterns": [],
+    "output": "Updated ticket, runbook, alerts, tests, post-mortem"
+  }
+]

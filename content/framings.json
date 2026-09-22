@@ -1,0 +1,19 @@
+[
+  {
+    "id": "role",
+    "label": "The role, in one answer",
+    "paragraphs": [
+      "A diagnostic support engineer operates across four layers. In pre-production, they validate code — including AI-generated code — with layered static analysis and strong tests. In production runtime, they build and use observability, so that anomalies are visible at all. During an incident, they follow playbooks for coordination and runbooks for execution, correlating evidence across tools to diagnose and mitigate.",
+      "After the incident, they write post-mortems and RCA reports, and — most importantly — feed the lessons back into new tests, new alerts and updated procedures.",
+      "The through-line is that the tools change at each layer, but the mindset is consistent: understand what correct looks like, observe deviation, let evidence drive the diagnosis, and write it down so the next person is faster."
+    ]
+  },
+  {
+    "id": "first_response",
+    "label": "First response, in one answer",
+    "paragraphs": [
+      "When a ticket arrives I run a six-phase assessment. I receive and timestamp it. I parse the reported symptom, separating what is observable from what is hypothesized. I classify it by category and severity, with a security check on every unknown. I contextualize it with system evidence: recent deploys, dashboards, traces, logs and RUM. I triage to a named decision — resolve, escalate, declare an incident, or ask for more information. I act on that decision with discipline. And I record the outcome, updating the ticket and, where warranted, the runbook, alerts or tests.",
+      "The most common assessment failure is under-classification: treating a systemic issue as a one-off because the first report came from a single user. The discipline is to ask, at every phase, what I would expect to see if this were systemic — and then go look."
+    ]
+  }
+]

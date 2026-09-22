@@ -1,0 +1,58 @@
+[
+  {
+    "id": "mttd",
+    "label": "MTTD",
+    "expanded": "Mean time to detect",
+    "measures": "Failure beginning to someone knowing",
+    "pointsTo": "Layer 2 monitoring coverage and alert thresholds",
+    "colorKey": "l2"
+  },
+  {
+    "id": "mtta",
+    "label": "MTTA",
+    "expanded": "Mean time to acknowledge",
+    "measures": "Alert firing to a human responding",
+    "pointsTo": "On-call rotation health and alert fatigue",
+    "colorKey": "g"
+  },
+  {
+    "id": "mttr",
+    "label": "MTTR",
+    "expanded": "Mean time to resolve",
+    "measures": "Detection to service restored",
+    "pointsTo": "Gate and Layer 3 runbook quality and tool fluency",
+    "colorKey": "l3"
+  },
+  {
+    "id": "mtbf",
+    "label": "MTBF",
+    "expanded": "Mean time between failures",
+    "measures": "Stability across incidents",
+    "pointsTo": "Layer 1 and Layer 4 — whether fixes stick",
+    "colorKey": "l1"
+  },
+  {
+    "id": "change_failure_rate",
+    "label": "Change failure rate",
+    "expanded": "Change failure rate",
+    "measures": "Proportion of deploys causing incidents",
+    "pointsTo": "Layer 1 test and gate adequacy",
+    "colorKey": "l1"
+  },
+  {
+    "id": "error_budget_burn",
+    "label": "Error budget burn",
+    "expanded": "Error budget burn",
+    "measures": "Reliability spent against the SLO",
+    "pointsTo": "Whether to ship features or stability work",
+    "colorKey": "g"
+  },
+  {
+    "id": "action_item_closure",
+    "label": "Action item closure rate",
+    "expanded": "Action item closure rate",
+    "measures": "Post-mortem commitments actually completed",
+    "pointsTo": "Layer 4 — whether the loop truly closes",
+    "colorKey": "l4"
+  }
+]
