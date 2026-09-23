@@ -1,7 +1,9 @@
+// next.config.ts
+
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  allowedDevOrigins: ["*.replit.dev", "*.repl.co", "*.worf.replit.dev"],
 };
 
 export default nextConfig;

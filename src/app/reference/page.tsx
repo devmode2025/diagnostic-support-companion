@@ -12,6 +12,7 @@ import metricsData from "@/../content/metrics.json";
 import glossaryData from "@/../content/glossary.json";
 import fluencyData from "@/../content/fluency.json";
 import framingsData from "@/../content/framings.json";
+import testingPolicyData from '@/../content/testing-policy.json';
 import type {
   Loop,
   Severity,
@@ -20,6 +21,7 @@ import type {
   GlossaryTerm,
   FluencyItem,
   Framing,
+  TestingPolicy,
   ColorKey,
 } from "@/types/content";
 import type { PhaseDefinition } from "@/types/triage";
@@ -32,6 +34,7 @@ const metrics = metricsData as Metric[];
 const glossary = glossaryData as GlossaryTerm[];
 const fluency = fluencyData as FluencyItem[];
 const framings = framingsData as Framing[];
+const testingPolicy = testingPolicyData as TestingPolicy;
 
 export default function ReferencePage() {
   const [query, setQuery] = useState("");
@@ -151,6 +154,36 @@ export default function ReferencePage() {
             ))}
           </div>
         ))}
+      </Section>
+      <Section title={testingPolicy.title}>
+        <p className="text-sm text-neutral-700 leading-relaxed mb-8">
+          {testingPolicy.standfirst}
+        </p>
+
+        {testingPolicy.sections.map((s) => (
+          <div key={s.id} className="mb-10">
+            <h3 className="text-sm font-semibold text-neutral-800 mb-3">
+              {s.title}
+            </h3>
+            {s.body.map((p, i) => (
+              <p
+                key={i}
+                className="text-sm text-neutral-700 leading-relaxed mb-3"
+              >
+                {p}
+              </p>
+            ))}
+          </div>
+        ))}
+
+        <div className="border-l-2 border-neutral-900 pl-4 mt-10">
+          <p className="text-base text-neutral-900 font-semibold mb-2">
+            {testingPolicy.principle}
+          </p>
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            {testingPolicy.principleNote}
+          </p>
+        </div>
       </Section>
 
       <footer className="mt-16 pt-6 border-t border-neutral-200 text-sm text-neutral-500">

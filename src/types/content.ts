@@ -84,3 +84,20 @@ export type Framing = {
   label: string;
   paragraphs: string[];
 };
+
+// ---- testing-policy.json ------------------------------------------------
+
+export type TestingPolicySection = {
+  id: string;
+  title: string;
+  body: string[];
+};
+
+export type TestingPolicy = {
+  title: string;
+  standfirst: string;
+  sections: TestingPolicySection[];
+  principle: string;
+  principleNote: string;
+  related: string[];
+};
