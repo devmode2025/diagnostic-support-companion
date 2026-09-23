@@ -1,4 +1,4 @@
-run = "npm run dev"
+run = "npm run build && npm run start"
 entrypoint = "src/app/page.tsx"
 modules = ["nodejs-20"]
 
@@ -8,3 +8,7 @@ channel = "stable-24_05"
 [[ports]]
 localPort = 3000
 externalPort = 80
+
+[[ports]]
+localPort = 3001
+externalPort = 3001
