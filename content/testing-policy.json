@@ -1,0 +1,40 @@
+{
+  "title": "Testing policy in a diagnostic context",
+  "standfirst": "Testing is not the diagnostic engineer's job. But the diagnostic engineer is the person best positioned to say when a test should have existed — and to argue for a coverage policy that measures the right thing.",
+  "sections": [
+    {
+      "id": "signal",
+      "title": "The signal",
+      "body": [
+        "The clearest tell that an incident's root cause is a testing gap rather than a code defect: the code is correct as written, but the requirement it failed was never expressed as an assertion anywhere. The system behaved exactly as designed. It just wasn't designed to fail visibly when this condition occurred.",
+        "This is different from a functional bug, where the code does the wrong thing. It is different from an environmental issue, where the right code runs against the wrong inputs. It is a specific class of failure: the behavior is undocumented, the specification exists only in the reviewer's head, and the next person to touch the code will make the same mistake.",
+        "The diagnostic finding is not 'add a test.' The finding is the specification itself: 'the retry path must return 503 on the third attempt.' A test is how the specification is recorded. The finding is the thing that needs to be recorded."
+      ]
+    },
+    {
+      "id": "handoff",
+      "title": "The handoff",
+      "body": [
+        "When you escalate a testing-gap finding to the team that owns the code, you are asking them to do work in their Layer 1 domain. The framing matters. 'Add a test' is a request without a specification — the engineer receiving it has to reconstruct what you meant, and their reconstruction will be shorter than yours.",
+        "The diagnostic handoff should specify four things: the input conditions, the expected behavior, the failure mode observed, and the class of test that would catch it. 'Add a characterization test that asserts the retry handler returns 503 on the third attempt with a JSON error body' is a specification an engineer can implement in ten minutes. 'The retry path is broken' is a conversation.",
+        "For incidents where the gap is a whole class of behavior rather than a single case, the handoff becomes a policy question rather than a test-writing question. That is where coverage policy enters."
+      ]
+    },
+    {
+      "id": "policy",
+      "title": "The policy question",
+      "body": [
+        "Code coverage without a policy is a metric that measures nothing. When coverage is a gate rather than a signal, three things go wrong simultaneously: the number stops tracking anything (Goodhart's law), coverage concentrates in easy-to-test code rather than error paths, and no one has the language to raise the problem without sounding like a process evangelist.",
+        "The diagnostic engineer's contribution is not to argue for a higher coverage target. It is to name which gaps have actually caused incidents and to propose a policy that measures what the incidents reveal. 'The last three incidents in this module originated in uncovered error paths' is a diagnostic finding. 'We should have 90% coverage' is an opinion.",
+        "A defensible policy has five properties. Coverage is reported, not gated. Mutation score gates critical modules — auth, payment, data writes, error handling — with a target of 60 to 80% mutant kill rather than 90% line coverage. Diff coverage checks new code at 80% of changed lines, while coverage on unchanged lines stays informational. Error-handling paths require explicit tests regardless of what the percentage says. And coverage drops require a one-line justification rather than blocking the merge."
+      ]
+    }
+  ],
+  "principle": "The metric is a prompt, not a target.",
+  "principleNote": "The field guide makes this point about MTTR: the moment it becomes a goal, the incentive shifts to closing incidents early rather than resolving them. The same warning applies to coverage. A coverage target produces tests that execute lines. A coverage signal produces tests that catch regressions. The difference is the policy, not the percentage.",
+  "related": [
+    "Layer 1 — Pre-production, where tests live",
+    "Phase 3 — Contextualize, where testing-gap signals surface",
+    "Phase 6 — Record, where 'add a test' becomes a written recommendation"
+  ]
+}
