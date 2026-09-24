@@ -9,8 +9,9 @@ The point is not to replace judgment. The point is to make judgment
 repeatable — to give every ambiguous ticket the same disciplined first read,
 and to leave a written record that makes the next responder faster.
 
-Live: _add your Replit deployment URL here after publishing_
-Method: see [`docs/method.html`](docs/method.html) for the full study outline.
+Live: https://diagnostic-support-companion.replit.app
+Method: https://diagnostic-support-companion.replit.app/method for the full study outline.
+Open: https://diagnostic-support-companion.replit.app/method.html for the original outline.
 
 ---
 
@@ -139,10 +140,11 @@ and the HTML diverge, the JSON is correct.
 
 ## Source
 
-GitHub: [https://github.com/devmode2025/diagnostic-support-companion](https://github.com/devmode2025/diagnostic-support-companion)
+GitHub: https://github.com/devmode2025/diagnostic-support-companion
 
-The original method outline — the document this app was built from — is
-preserved at [`docs/method.html`](docs/method.html).
+Live: https://diagnostic-support-companion.replit.app
+Method: https://diagnostic-support-companion.replit.app/method for the full study outline.
+Open: https://diagnostic-support-companion.replit.app/method.html for the original outline.
 
 ---
 
