@@ -9,9 +9,9 @@ The point is not to replace judgment. The point is to make judgment
 repeatable — to give every ambiguous ticket the same disciplined first read,
 and to leave a written record that makes the next responder faster.
 
-Live: https://diagnostic-support-companion.replit.app
-Method: https://diagnostic-support-companion.replit.app/method for the full study outline.
-Open: https://diagnostic-support-companion.replit.app/method.html for the original outline.
+- Live: [Diagnostic Support Companion](https://diagnostic-support-companion.replit.app)
+- Method: [Full Study Outline](https://diagnostic-support-companion.replit.app/method)
+- Open: [For Original Outline](https://diagnostic-support-companion.replit.app/method.html).
 
 ---
 
