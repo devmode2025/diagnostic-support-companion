@@ -142,9 +142,9 @@ and the HTML diverge, the JSON is correct.
 
 GitHub: https://github.com/devmode2025/diagnostic-support-companion
 
-Live: https://diagnostic-support-companion.replit.app
-Method: https://diagnostic-support-companion.replit.app/method for the full study outline.
-Open: https://diagnostic-support-companion.replit.app/method.html for the original outline.
+- Live: [Diagnostic Support Companion](https://diagnostic-support-companion.replit.app)
+- Method: [Full Study Outline](https://diagnostic-support-companion.replit.app/method)
+- Open: [For Original Outline](https://diagnostic-support-companion.replit.app/method.html).
 
 ---
 
