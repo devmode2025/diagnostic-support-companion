@@ -161,3 +161,22 @@ debugging patterns), `holmes` (a knowledge-driven troubleshooting
 assistant), and `experience-pack` (a project lessons log with a
 five-part boundary test for distinguishing portable from
 project-specific lessons).
+---
+
+## Changelog
+
+Entries move here once they ship. The format is:
+
+- **Date** — feature, one sentence, PR or commit reference.
+
+**2026-09-22** — v1 shipped. Content layer, six-phase triage flow, case
+log, reference tab, provenance artifact, documentation. First commit
+`002b392`.
+
+**2026-09-23** — v1 published. Live at
+https://diagnostic-support-companion.replit.app. First public
+deployment. Commit `fc697e2`.
+
+**2026-09-23** — v2.1 shipped. Testing policy section added to the
+reference tab, sourced from `content/testing-policy.json`. Commit
+`9488cc4`.
