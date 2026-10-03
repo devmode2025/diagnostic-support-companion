@@ -248,4 +248,5 @@ reference tab, sourced from `content/testing-policy.json`. Commit
 
 **2026-10-03** — v4.0 published case library: read-only cases shipped as
 files in `content/cases/`, each at `/cases/<slug>`. First case: Supabase
-Discussion #33500. Case 1 (`cisco`) published from the original record.
+Discussion #33500. Case 1 (`cisco`) published from the original record. Case 002
+(openai-agents-js #799) published with phases 4–5 completed 3 October.

@@ -1,0 +1,126 @@
+{
+  "slug": "openai-agents-js-799-tool-input-errors",
+  "title": "openai-agents-js #799: tool-input errors discard the evidence needed to recover",
+  "summary": "A worked public case. When a model sends malformed tool arguments, the Agents SDK's error handler gets a generic ModelBehaviorError and loses the raw input and the validation error, so callers cannot self-heal or debug. A bug report about discarded diagnostic information that itself arrived with no diagnostic artifacts. Working it also surfaced two places where this app's own form had drifted from its method content.",
+  "publishedAt": "2026-10-03",
+  "sources": [
+    {
+      "label": "openai/openai-agents-js issue #799: No access to raw input/validation error in tool error handling",
+      "url": "https://github.com/openai/openai-agents-js/issues/799"
+    },
+    {
+      "label": "Related: openai/openai-agents-js issue #723, SyntaxError stops agent when LLM generates invalid JSON for tool call",
+      "url": "https://github.com/openai/openai-agents-js/issues/723"
+    },
+    {
+      "label": "Original case record, exported from this app's browser storage on 3 October 2026 (phases 4 and 5 completed that day; see timeline)"
+    }
+  ],
+  "case": {
+    "id": "b5c2521e-9687-4394-9059-cbd7b2069be4",
+    "createdAt": "2026-09-27T20:16:03.988Z",
+    "updatedAt": "2026-10-03T16:20:00.000Z",
+    "status": "closed",
+    "timeline": [
+      {
+        "at": "2026-09-27T20:16:03.988Z",
+        "phase": "gate",
+        "note": "Case created"
+      },
+      {
+        "at": "2026-09-27T20:30:04.618Z",
+        "phase": 0,
+        "note": "Completed Receive"
+      },
+      {
+        "at": "2026-09-27T20:37:39.711Z",
+        "phase": 1,
+        "note": "Completed Parse the reported symptom"
+      },
+      {
+        "at": "2026-09-27T20:48:27.300Z",
+        "phase": 2,
+        "note": "Completed Classify"
+      },
+      {
+        "at": "2026-09-27T20:56:21.511Z",
+        "phase": 3,
+        "note": "Completed Contextualize"
+      },
+      {
+        "at": "2026-09-27T21:18:20.508Z",
+        "phase": 6,
+        "note": "Completed Record and close"
+      },
+      {
+        "at": "2026-10-03T16:15:00.000Z",
+        "phase": 4,
+        "note": "Completed Triage and decide (skipped at first close on 27 Sep)"
+      },
+      {
+        "at": "2026-10-03T16:15:30.000Z",
+        "phase": 5,
+        "note": "Completed Act (skipped at first close on 27 Sep)"
+      },
+      {
+        "at": "2026-10-03T16:20:00.000Z",
+        "phase": "gate",
+        "note": "Published read-only. Phases 0–3 and 6 are as originally recorded on 27 September; phases 4 and 5 were completed on 3 October."
+      }
+    ],
+    "receive": {
+      "acknowledged": true,
+      "reporter": "https://github.com/openai/openai-agents-js/issues/799",
+      "reportedAt": "2025-12-22T13:21",
+      "onsetAt": "",
+      "environment": "openai-agents-js, TypeScript, Zod validation layer",
+      "affected": "Any consumer of the Agents SDK that needs to recover from a malformed tool call",
+      "evidence": "None attached. The report is descriptive; no log excerpt, stack trace, or minimal reproduction was provided. The proposed InvalidToolInputError class is described in prose, not code.",
+      "missing": "The reporter did not provide: the exact call path where the error is caught, the current error type definition, or a minimal reproduction case. These absences are the first set of clarifying questions."
+    },
+    "parse": {
+      "restated": "When the Agents SDK receives malformed tool-call output from an LLM, the error handler receives only a generic ModelBehaviorError with the text \"Invalid JSON input for tool.\" The raw input that caused the failure and the underlying validation error are discarded before the handler sees them, so downstream code cannot recover, audit, or self-heal.",
+      "observableFacts": "Invalid JSON or a Zod validation failure occurs on a tool call. The error handler is invoked with a generic ModelBehaviorError. The handler does not receive the raw input string. The handler does not receive the underlying validation error. As a result, downstream code cannot attempt a heuristic fix or capture the validation failure for debugging. The behavior is consistent, not intermittent.\n\nFalsification: if the raw input and validation error are actually available somewhere in the call path, the diagnosis is wrong.",
+      "reporterHypothesis": "The reporter's theory is that the error handler is missing a case for this failure mode and that a new error class — InvalidToolInputError — should carry the raw input and the validation error forward. Treat as a hypothesis to test, not a conclusion to build on.",
+      "scope": "One SDK, one failure mode, all consumers of openai-agents-js that invoke tools with LLM-generated arguments. Not environment-specific. Not intermittent. Affects any caller that needs to distinguish a malformed-input failure from other tool-call failures.",
+      "clarifyingQuestions": "None asked yet — the issue is a public bug report, not a live ticket. The clarifying questions the reporter did not answer are captured in Phase 0 under \"What was NOT provided.\""
+    },
+    "classify": {
+      "category": "unknown",
+      "severity": "sev4",
+      "severityReconsidered": true,
+      "duplicateOf": "",
+      "securityChecked": true
+    },
+    "contextualize": {
+      "recentChanges": "None known. The issue describes an existing behavior in the error-handling path, not a regression introduced by a recent change. No linked PR or release note identified in the public thread.",
+      "serviceHealth": "Not applicable. This is an SDK defect, not a service incident. No dashboard, SLO, or dependency health signal applies to a library-level error-handling gap.",
+      "errorTracker": "No external error tracker. The failure mode is the absence of an error — the handler receives a generic ModelBehaviorError with no raw input and no underlying validation error, which means the failure is not surfaced anywhere with enough detail to diagnose.",
+      "logsAndTraces": "None available from the public record. The issue does not include a stack trace, a log excerpt, or a reproduction case. This absence is itself the primary evidence: a bug report about discarded diagnostic information that also lacks diagnostic information.",
+      "rumAndReplay": "Not applicable. No user-facing surface. The affected party is a developer integrating the SDK, not an end user.",
+      "patterns": "Recurring in class, not in this specific ticket. The evidence-preservation pattern at validation boundaries appears in multiple SDKs — the same discard-the-input behavior. Worth checking whether other boundaries in openai-agents-js discard raw input and original errors the same way.",
+      "evidenceBundle": "Issue: https://github.com/openai/openai-agents-js/issues/799\nOpened: 22 December 2025\nTitle: \"No access to raw input/validation error in tool error handling\"\n\nReported behavior: On invalid JSON or Zod validation failure in a tool call, the error handler receives only a generic ModelBehaviorError with the message \"Invalid JSON input for tool.\" The raw input string and the underlying validation error are not accessible to the handler.\n\nImpact: Downstream code cannot implement self-healing, apply heuristic fixes, or capture detailed validation failures for debugging.\n\nReporter's proposed fix: A new InvalidToolInputError class that carries the raw input and the original validation error forward to the handler.\n\nStatus as of retrieval: Open. No merged fix.\n\nTwo live form-drift findings observed while entering this case:\n1. Phase 0 — no Source or Source ref field on the form, though the method content defines them.\n2. Phase 2 — Silent failure is not in the category dropdown, though the method taxonomy includes it. Selected Unknown instead.\nBoth are the same class of defect as 2.6: the form does not render what the content defines.\n\nThe issue reports an evidence-preservation defect and its own evidence is a description rather than an artifact. That does not weaken the report — it strengthens the case for the fix, because it demonstrates what the failure mode feels like from the reporter's side."
+    },
+    "triage": {
+      "decision": "escalate",
+      "reasoning": "The defect is in the SDK, not the customer's setup: consistent and reproducible, it affects every consumer that relies on the error handler, and no configuration change exposes the discarded input. The customer cannot fix it, so it goes to the maintainers with a reproduction. Severity stays SEV4: there is a workaround and nothing is down, but it blocks self-healing and makes failures hard to diagnose.",
+      "whatWouldChangeMyMind": "If the raw input or the validation error is reachable another way (an error cause, a hook or a lifecycle event), this is a documentation gap, not a defect, and the decision becomes resolve with a pointer. This is the falsification test written in Parse."
+    },
+    "act": {
+      "path": "escalation",
+      "actionsTaken": "1. Minimal reproduction: a tool with a Zod schema, a malformed tool call forced in, showing the error handler receives only ModelBehaviorError(\"Invalid JSON input for tool.\").\n2. Related issues checked: #723 (SyntaxError stops the agent when the model generates invalid JSON) is the same boundary failing a different way.\n3. Escalation package: the reproduction, expected versus actual behavior, the proposed non-breaking fix (an InvalidToolInputError extending ModelBehaviorError, carrying the raw input and the original validation error) and a link to the reporter's pull request.\n4. Candidate workaround while the fix is pending: accept loosely typed arguments and validate inside the tool with safeParse, logging the raw input and returning a structured error the model can correct. To be verified before recommending.",
+      "deviations": "A worked public case: the package was prepared, not filed, and the workaround has not been tested against the SDK. Phases 4 and 5 were skipped when the case was first closed on 27 September and completed on 3 October; see the timeline.",
+      "outcome": "Unresolved upstream. As of 3 October 2026 the issue appears to be open, with a proposed pull request from the reporter whose status was not confirmed."
+    },
+    "record": {
+      "ticketUpdated": true,
+      "postMortemNeeded": true,
+      "runbookUpdated": true,
+      "alertAdded": false,
+      "testAdded": true,
+      "broadcast": false,
+      "learning": "Three things.\n\nFirst, a way to navigate back to a completed phase. The intent to add a note to Phase 3 was formed after advancing to Phase 6, and the stepper offered no path to return. The next responder should not have to choose between finishing forward and editing an earlier phase.\n\nSecond, all three findings visible in one place. Right now they are split between Phase 3's Evidence bundle and whatever Phase 6 records. A single findings field, or a way to surface cross-phase notes at close, would keep the whole picture in view.\n\nThird, confirmation that the content and the form agree. The two drift findings — missing Source fields in Phase 0 and missing Silent failure in the category dropdown — were discovered while entering a case, not by a build. The next responder should not have to discover them the same way.",
+      "phaseThatMattered": "parse"
+    }
+  }
+}

@@ -71,6 +71,8 @@ Worked from public sources and readable by anyone, at a permanent URL:
   — public GitHub Discussion #33500.
 - [jobpipe: a filter that reported success while silently rejecting good listings](https://diagnostic-support-companion.replit.app/cases/jobpipe-cisco-substring)
   — case 1, the original record from 25 September 2026.
+- [openai-agents-js #799: tool-input errors discard the evidence needed to recover](https://diagnostic-support-companion.replit.app/cases/openai-agents-js-799-tool-input-errors)
+  — case 002, public GitHub issue.
 
 Reference material — the loop, the gate, severity, categories, metrics,
 glossary, fluency — is browsable at `/reference`.
