@@ -1,3 +1,64 @@
+## v4 — Published cases
+
+### 4.0 Published case library (read-only, no backend)
+
+**Why.** Cases live only in the browser's `localStorage` (`dsc.cases`
+in `src/lib/cases.ts`). That had two consequences nobody intended:
+
+1. **Nobody else can see a case.** A hiring manager who opens the live
+   app sees an empty case log — their browser, their storage. By
+   October 2026 the cover letters and application answers had started
+   citing specific cases worked through the app ("I ran your GitHub
+   Discussion #33500 through my triage tool"). A claim the reader can
+   check and finds empty is worse than no claim.
+2. **A case can be lost.** Clearing browser data or switching laptops
+   deletes it. Case 1 (the `cisco` substring bug) has lived only in
+   `localStorage` since 26 September.
+
+The tool is a claim; the case log is the evidence (see the depth-over-
+breadth discussion). Evidence that only its author can see is not
+evidence.
+
+**What.** Published cases ship with the app as JSON files in
+`content/cases/`, one per case, in the existing `TriageCase` shape plus a
+small header (slug, title, summary, sources, publishedAt). Each renders
+read-only at its own permanent URL, `/cases/<slug>`. The `/cases` page
+shows them in a "Published cases" section above the visitor's own
+browser-local cases. Private working cases stay in `localStorage` until
+the author chooses to publish one; an "Export JSON" control on a case
+produces the file to commit.
+
+**Why not a database (4.1).** 4.1's trigger is "more than one person
+needs to see the same case log." A reader needs to *view* a case, not
+edit it, and read-only viewing needs no server, auth, sessions or
+retention policy. Files in the repo are also version-controlled: every
+published case carries a dated commit, which is its own provenance. 4.1
+stays deferred, with its trigger unchanged.
+
+**Rules for publishing.**
+
+- Public sources only: open GitHub issues and discussions, public
+  documentation, the author's own projects. Never an employer's system
+  or a confidential ticket.
+- Every published case links its sources.
+- A published case is a record, not a showcase: keep the wrong turns.
+
+**Seam.** New `content/cases/*.json`; new `src/lib/published-cases.ts`
+(build-time loader); new `src/app/cases/[slug]/page.tsx` (static,
+read-only); `CaseSummary` gains a read-only mode (no reopen control);
+`src/app/cases/page.tsx` lists published cases; home page and README
+link the library. `src/lib/cases.ts` gains an export helper only — the
+`localStorage` path is unchanged.
+
+**First cases.** (1) Supabase Discussion #33500 — RLS select returns an
+empty array with no error; already cited in an application. (2) Case 1,
+the `cisco` substring bug. (3) Case 002. (4) Claude API intermittent 429s.
+
+**Trigger.** Built 3 October 2026, triggered by the first application
+answer that cited a specific case.
+
+---
+
 ## v5 — Long-term
 
 ### 5.1 Semantic search over the case log (RAG over a vector store)
@@ -180,3 +241,7 @@ deployment. Commit `fc697e2`.
 **2026-09-23** — v2.1 shipped. Testing policy section added to the
 reference tab, sourced from `content/testing-policy.json`. Commit
 `9488cc4`.
+
+**2026-10-03** — v4.0 published case library: read-only cases shipped as
+files in `content/cases/`, each at `/cases/<slug>`. First case: Supabase
+Discussion #33500.
