@@ -4,7 +4,8 @@ import type { TriageCase } from "@/types/triage";
 
 export type CaseSource = {
   label: string;
-  url: string;
+  /** Omit for a source that is not publicly reachable (e.g. a private repo). */
+  url?: string;
 };
 
 /**

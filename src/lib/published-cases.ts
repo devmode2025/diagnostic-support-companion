@@ -26,7 +26,9 @@ function assertPublishedCase(
     if (typeof v.publishedAt !== "string" || !v.publishedAt)
       problems.push("missing publishedAt");
     if (!Array.isArray(v.sources) || v.sources.length === 0)
-      problems.push("sources must list at least one public source");
+      problems.push("sources must list at least one source");
+    else if (v.sources.some((s) => !s || typeof s.label !== "string" || !s.label))
+      problems.push("every source needs a label");
     if (!v.case || typeof v.case !== "object") problems.push("missing case");
   }
   if (problems.length > 0) {

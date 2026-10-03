@@ -52,7 +52,11 @@ link the library. `src/lib/cases.ts` gains an export helper only — the
 
 **First cases.** (1) Supabase Discussion #33500 — RLS select returns an
 empty array with no error; already cited in an application. (2) Case 1,
-the `cisco` substring bug. (3) Case 002. (4) Claude API intermittent 429s.
+the `cisco` substring bug — recovered from the original laptop's
+`localStorage` on 3 October, which is this section's "can be lost" risk
+in miniature. (3) Case 002. (4) Claude API intermittent 429s.
+
+**Practice.** Export a case as soon as it closes.
 
 **Trigger.** Built 3 October 2026, triggered by the first application
 answer that cited a specific case.
@@ -244,4 +248,4 @@ reference tab, sourced from `content/testing-policy.json`. Commit
 
 **2026-10-03** — v4.0 published case library: read-only cases shipped as
 files in `content/cases/`, each at `/cases/<slug>`. First case: Supabase
-Discussion #33500.
+Discussion #33500. Case 1 (`cisco`) published from the original record.

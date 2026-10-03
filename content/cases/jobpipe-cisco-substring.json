@@ -1,0 +1,121 @@
+{
+  "slug": "jobpipe-cisco-substring",
+  "title": "jobpipe: a filter that reported success while silently rejecting good listings",
+  "summary": "My own job-discovery pipeline surfaced 10 of 5,499 listings with every health counter green. The reporter's hypothesis, \"the filter is too strict,\" was set aside; an audit of the rejections found Plaid's Technical Support Engineer rejected for \"help-desk signal: cisco\", a substring match inside \"San Francisco.\" Fixed as a class, word-boundary matching for signals, with regression tests in both directions.",
+  "publishedAt": "2026-10-03",
+  "sources": [
+    {
+      "label": "jobpipe: the author's own job-discovery pipeline (private repository); the defective matcher is quoted in the evidence bundle"
+    },
+    {
+      "label": "Original case record, exported unedited from this app's browser storage on 3 October 2026 (one field corrected at publication; see timeline)"
+    }
+  ],
+  "case": {
+    "id": "7723b0ae-ac89-40eb-b2df-e0237919c6cf",
+    "createdAt": "2026-09-25T05:06:14.699Z",
+    "updatedAt": "2026-09-25T15:04:53.235Z",
+    "status": "closed",
+    "timeline": [
+      {
+        "at": "2026-09-25T05:06:14.699Z",
+        "phase": "gate",
+        "note": "Case created"
+      },
+      {
+        "at": "2026-09-25T13:20:00.704Z",
+        "phase": 0,
+        "note": "Completed Receive"
+      },
+      {
+        "at": "2026-09-25T14:29:13.158Z",
+        "phase": 1,
+        "note": "Completed Parse the reported symptom"
+      },
+      {
+        "at": "2026-09-25T14:37:16.811Z",
+        "phase": 2,
+        "note": "Completed Classify"
+      },
+      {
+        "at": "2026-09-25T14:43:10.453Z",
+        "phase": 3,
+        "note": "Completed Contextualize"
+      },
+      {
+        "at": "2026-09-25T14:47:57.266Z",
+        "phase": 4,
+        "note": "Completed Triage and decide"
+      },
+      {
+        "at": "2026-09-25T14:51:42.639Z",
+        "phase": 5,
+        "note": "Completed Act"
+      },
+      {
+        "at": "2026-09-25T15:04:53.235Z",
+        "phase": 6,
+        "note": "Completed Record and close"
+      },
+      {
+        "at": "2026-10-03T15:30:00.000Z",
+        "phase": "gate",
+        "note": "Published read-only. One correction at publication: the 'RUM and session replay' field had been filled with a copy of the 'Patterns' text; replaced with 'Not applicable'. All other fields are as originally recorded."
+      }
+    ],
+    "receive": {
+      "acknowledged": true,
+      "reporter": "me — self-reported from output review, not a customer report",
+      "reportedAt": "2026-09-18T17:12",
+      "onsetAt": "2026-09-18T05:17",
+      "environment": "jobpipe v1, local, 53 boards",
+      "affected": "Single user (me). All boards, all runs since v1.",
+      "evidence": "Run output: 5,499 screened, 10 surfaced, 0 boards unreachable.\ncandidates.html digest, 10 entries.\njobpipe.sqlite3 — full rejection reasons stored per listing.",
+      "missing": "No error, no exception, no failed run — success output only.\nNo baseline for what a correct pass rate looks like at this corpus size.\nNo indication whether 10 was right or whether listings were being lost.\nNo signal distinguishing correct strictness from silent false negatives."
+    },
+    "parse": {
+      "restated": "Unknown whether a 0.18% pass rate (10 of 5,499) reflects correct filtering over a corpus that genuinely contains few support roles, or silent false negatives. Nothing in the output distinguishes the two.",
+      "observableFacts": "Ran the first full pipeline pass on 18 Sept: 5,499 listings screened across 53 boards, 10 surfaced, 5,489 rejected, 0 boards unreachable.\nExpected: a handful more than 10, though with no baseline for what \"right\" looks like at this corpus size.\nNo error, no exception, no failed board. The run reported success.\nFully reproducible — same corpus and rules produce the same output every time. No timing, load or state involvement.\nStill occurring at time of report.",
+      "reporterHypothesis": "\"The filter is too strict\" — i.e. the title allow-list is too narrow and the thresholds need loosening.\n\nTreated as hypothesis, not fact. Note it is a diagnosis stated as a symptom: it presumes the rules are correct but over-tuned, which rules out the possibility that a rule is being applied wrongly. Acting on it would have meant loosening title matching — adding noise while leaving any real defect in place.",
+      "scope": "All 53 boards, every run since v1. One user.\nAffected population is listings, not users — and the count of suppressed listings is unknown, which is the problem itself. If they were visible they would not be suppressed.",
+      "clarifyingQuestions": "No reporter to question — self-noticed. The equivalent was a set of closed questions put to the data:\n\n- Are any rejected listings ones a human would judge a good match? (One counterexample settles whether \"too strict\" is the right frame.)\n- What is the distribution of rejection reasons across all 5,489?\n- Of listings with \"support\" in the title, how many were rejected and for what stated reason?\n\nThe third produced the answer: 129 rows, three rejected for a help-desk signal that could not plausibly apply."
+    },
+    "classify": {
+      "category": "unknown",
+      "severity": "sev3",
+      "severityReconsidered": true,
+      "duplicateOf": "none - first case",
+      "securityChecked": true
+    },
+    "contextualize": {
+      "recentChanges": "None. The defect was present from the first commit, not introduced by a change. The v1 filter rules and the _hits() matcher shipped together on 18 Sept and had never been modified.\n\nNotable inversion: the Mindset prompt says most incidents correlate with a change. This one correlated with the absence of one — the first full run over a large corpus was simply the first opportunity for the defect to be observable.",
+      "serviceHealth": "No dashboards, SLOs or error rates — local CLI tool. The closest equivalent is run-level counters: 5,499 screened, 10 surfaced, 5,489 rejected, 0 boards unreachable, no exceptions.\n\nEvery counter reported healthy. That is the finding: health metrics measure whether the run completed, not whether its output was correct.",
+      "errorTracker": "None. No error was raised at any point — the defect produces a wrong result, not a failure.",
+      "logsAndTraces": "No application logs. The equivalent record is the SQLite store, which persists a rejection reason per listing.\n\nQuery: rejected listings with \"support\" in the title — 129 rows returned with their stated reason. Three rejected for \"help-desk signal: cisco\", including Plaid — Technical Support Engineer, a fintech API company with no plausible Cisco networking requirement.\n\nThat row was the whole case.",
+      "rumAndReplay": "Not applicable: local CLI tool, no user sessions to replay.",
+      "patterns": "Yes — the same audit surfaced three further false-negative classes, all independent of the cisco bug:\n- \"AMER\" and bare \"United States\" locations rejected as not-remote\n- \"utilities\" matching software utilities, not the utility industry\n- \"Customer Support Developer\" absent from the title allow-list\n\nOne defect found by audit; four found by the same audit. That suggests the defect class is systemic — uniform matching applied across semantically different lists — rather than a single bad word.",
+      "evidenceBundle": "- Run output, 18 Sept: 5,499 screened / 10 surfaced / 0 unreachable\n- jobpipe.sqlite3 — rejection reason stored per listing\n- why.py support — 129 rows, rejection reason per row\n- The three \"help-desk signal: cisco\" rows, Plaid among them\n- filters.py _hits(): \"return [n for n in needles if n in haystack]\"\n- Plaid JD — no Cisco or networking requirement anywhere"
+    },
+    "triage": {
+      "decision": "investigate",
+      "reasoning": "Fix it at the desk. By this point the cause was identified and confirmed by evidence, not hypothesis: _hits() used substring matching, \"cisco\" is a substring of \"San Francisco,\" and three real listings had been rejected on that basis.\n\nSole owner, sole user, no coordination cost. The fix is a matching-strategy change in one function.\n\nThe decision that mattered was scope, not path. The narrow fix is removing \"cisco\" from the help-desk list. The correct fix is word-boundary matching across every signal list, because the defect is uniform matching applied to semantically different lists — titles need substring matching (\"support engineer\" inside \"Technical Support Engineer\"), signals need word boundaries. Removing the word would have left the class of defect intact and the next collision would have been just as invisible.\n\nChose the broader fix, plus regression tests, plus an audit of the other signal lists for the same class.",
+      "whatWouldChangeMyMind": "- A rejected listing where \"cisco\" was a genuine Cisco networking requirement and word-boundary matching would wrongly admit it. (Tested: a real Cisco requirement still rejects.)\n- Titles breaking under word boundaries — would mean the split between the two matching strategies is wrong.\n- Surfaced count barely moving after the fix — would mean the cisco collision was incidental and the pass rate has another cause.\n- A stated requirement somewhere that substring matching was deliberate.\n\nThe second and third were the real risks. Both were checked: 62 tests passed, and surfaced listings went 10 → 17."
+    },
+    "act": {
+      "path": "novel",
+      "actionsTaken": "1. Added _word_hits() — regex with lookaround boundaries, (?<!\\w)needle(?!\\w) — alongside the existing substring _hits().\n2. Switched the signal lists to word-boundary matching: help-desk, industry, never-claim, AI, stack, and location deny. Left titles on substring matching deliberately, so \"support engineer\" still matches inside \"Technical Support Engineer.\"\n3. Wrote regression tests before re-running: \"San Francisco\" must not trip the cisco signal; a genuine Cisco networking requirement must still reject.\n4. Ran the full suite — 62 passing.\n5. Re-screened the full corpus with --all, since config and logic changes only reach listings the store has already judged.\n6. Compared surfaced count and inspected the newly surfaced listings by hand.",
+      "deviations": "No runbook existed; the sequence above was constructed for this case.\n\nOne deviation worth recording: the same audit that found the cisco bug surfaced three further false-negative classes — \"AMER\" and bare \"United States\" read as not-remote, \"utilities\" matching software utilities, and a missing title. I fixed all four in the same pass rather than scoping to the reported defect.\n\nDefensible because they shared a root cause (uniform matching across semantically different lists) and the re-screen is expensive. But it does mean the surfaced-count delta measures four fixes, not one — so it is weaker evidence for the cisco fix specifically than it appears.",
+      "outcome": "Confirmed against the original symptom, not just the tests.\n\nSurfaced listings: 10 → 17. Plaid's Technical Support Engineer appeared, posted that day, and became a submitted application. The other newly surfaced roles were consistent with the fix — ClickHouse AMER, Fireblocks West Coast, Airbyte, two Replit.\n\n62 tests passing, including both directions of the cisco case.\n\nNot fully resolved: the original question — is the pass rate correct — remains open. 17 of 5,499 is still 0.3%, and there is still no baseline for what correct looks like. What was established is that at least four false-negative classes existed, and that the audit method finds them. The defect is fixed; the ambiguity that prompted the report is not."
+    },
+    "record": {
+      "ticketUpdated": true,
+      "postMortemNeeded": true,
+      "runbookUpdated": true,
+      "alertAdded": false,
+      "testAdded": true,
+      "broadcast": false,
+      "learning": "A baseline. There was no expected range for surfaced count at a given corpus size, so a 0.18% pass rate was ambiguous rather than obviously wrong. The next responder facing the same symptom would face the same ambiguity.\n\nA false-negative signal. Every run counter reported healthy because they measure completion, not correctness. Something that flags \"a board returned 200 roles and surfaced zero\" would have made this visible on day one.\n\nThe audit tool earlier. why.py was written during this investigation. It now exists, which is the single largest improvement to the next responder's position.",
+      "phaseThatMattered": "contextualize"
+    }
+  }
+}

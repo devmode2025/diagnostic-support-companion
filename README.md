@@ -69,6 +69,8 @@ Worked from public sources and readable by anyone, at a permanent URL:
 
 - [Supabase: RLS-protected select returns an empty array, with no error](https://diagnostic-support-companion.replit.app/cases/supabase-rls-empty-select)
   — public GitHub Discussion #33500.
+- [jobpipe: a filter that reported success while silently rejecting good listings](https://diagnostic-support-companion.replit.app/cases/jobpipe-cisco-substring)
+  — case 1, the original record from 25 September 2026.
 
 Reference material — the loop, the gate, severity, categories, metrics,
 glossary, fluency — is browsable at `/reference`.

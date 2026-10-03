@@ -64,10 +64,14 @@ export default async function PublishedCasePage({
         </h2>
         <ul className="text-sm list-disc pl-5 space-y-1">
           {published.sources.map((s) => (
-            <li key={s.url}>
-              <a href={s.url} className="underline text-neutral-800">
-                {s.label}
-              </a>
+            <li key={s.label}>
+              {s.url ? (
+                <a href={s.url} className="underline text-neutral-800">
+                  {s.label}
+                </a>
+              ) : (
+                <span className="text-neutral-800">{s.label}</span>
+              )}
             </li>
           ))}
         </ul>
@@ -130,6 +134,21 @@ function FullRecord({ caseData }: { caseData: TriageCase }) {
           </div>
         );
       })}
+      <div className="mb-8">
+        <h3 className="text-xs uppercase tracking-wider text-neutral-500 mb-3">
+          Timeline
+        </h3>
+        <ol className="text-sm space-y-1">
+          {caseData.timeline.map((t, i) => (
+            <li key={i} className="text-neutral-700">
+              <span className="font-mono text-xs text-neutral-500 mr-2">
+                {t.at.slice(0, 16).replace("T", " ")} UTC
+              </span>
+              {t.note}
+            </li>
+          ))}
+        </ol>
+      </div>
     </section>
   );
 }
