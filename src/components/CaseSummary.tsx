@@ -9,6 +9,7 @@ import type {
   TriageDecision,
 } from "@/types/triage";
 import type { Category, Severity } from "@/types/content";
+import { caseStatusLabel } from "@/lib/case-status";
 
 type Props = {
   caseData: TriageCase;
@@ -37,7 +38,13 @@ export function CaseSummary({
     <article className="max-w-2xl">
       <header className="mb-10 pb-6 border-b-2 border-neutral-900">
         <p className="text-xs uppercase tracking-wider text-neutral-500 mb-2">
-          Case {caseData.id.slice(0, 8)}
+          Case {caseData.id.slice(0, 8)} ·{" "}
+          <span
+            className="text-neutral-700"
+            title="Closed means worked through all six phases and recorded. The outcome follows it."
+          >
+            {caseStatusLabel(caseData)}
+          </span>
         </p>
         <h1 className="text-2xl font-semibold text-neutral-900 leading-snug mb-3">
           {caseData.parse.restated || "Untitled case"}

@@ -56,6 +56,15 @@ and write it down so the next person is faster.
 4. At Phase 6, close the case. The app produces a case summary — restated
    problem, evidence bundle, decision, outcome, learning, and a
    template-based customer-facing status update draft.
+
+   **What "closed" means.** A case closes when Phase 6 is completed.
+   Closed means the case was worked through the gate and recorded; it
+   says nothing about outcome. The outcome is the Phase 4 decision
+   (declare an incident, resolve, investigate, escalate, or pause for
+   information) and the Phase 5 path (resolved via runbook, investigated
+   a novel issue, led an incident, or escalated to another team). The app
+   therefore always shows status with its outcome, e.g. "Closed ·
+   escalated". "Reopen case" returns a closed case to in progress.
 5. Review completed cases at `/cases`. The **phase that mattered** column
    is the one worth reading.
 6. To publish a case, use **Export JSON** on its summary, fill in the

@@ -6,6 +6,7 @@
 import Link from "next/link";
 import { LocalCaseLog } from "@/components/LocalCaseLog";
 import { listPublishedCases } from "@/lib/published-cases";
+import { caseStatusLabel } from "@/lib/case-status";
 
 export default function CasesPage() {
   const published = listPublishedCases();
@@ -39,7 +40,8 @@ export default function CasesPage() {
                 {c.summary}
               </p>
               <p className="text-xs text-neutral-400 mt-1">
-                Published {c.publishedAt} · phase that mattered:{" "}
+                Published {c.publishedAt} · {caseStatusLabel(c.case)} · phase
+                that mattered:{" "}
                 {c.case.record.phaseThatMattered || "—"}
               </p>
             </li>

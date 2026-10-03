@@ -269,3 +269,9 @@ reference tab, sourced from `content/testing-policy.json`. Commit
 files in `content/cases/`, each at `/cases/<slug>`. First case: Supabase
 Discussion #33500. Case 1 (`cisco`) published from the original record. Case 002
 (openai-agents-js #799) published with phases 4–5 completed 3 October.
+
+**2026-10-03** — "Closed" defined: a case closes when Phase 6 is
+completed, and closed records that the case was worked, not how it
+ended. Status now always shows with its outcome ("Closed · escalated")
+on the case summary and the published-case list, from the Phase 5 path
+or, failing that, the Phase 4 decision (`src/lib/case-status.ts`).
