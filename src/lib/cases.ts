@@ -1,6 +1,7 @@
 // src/lib/cases.ts
 
 import type { TriageCase } from "@/types/triage";
+import type { PublishedCase } from "@/types/published";
 
 const STORAGE_KEY = "dsc.cases";
 
@@ -126,4 +127,32 @@ export function deleteCase(id: string): void {
   const map = readAll();
   delete map[id];
   writeAll(map);
+}
+
+/**
+ * Wrap a browser-local case in the published-case shape (roadmap 4.0) and
+ * download it as JSON. Fill in slug, title, summary and sources, then
+ * commit it to content/cases/<slug>.json to publish it read-only.
+ */
+export function exportCase(caseData: TriageCase): void {
+  if (typeof window === "undefined") return;
+  const draft: PublishedCase = {
+    slug: "",
+    title: caseData.parse.restated,
+    summary: "",
+    publishedAt: new Date().toISOString().slice(0, 10),
+    sources: [],
+    case: caseData,
+  };
+  const blob = new Blob([JSON.stringify(draft, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `case-${caseData.id.slice(0, 8)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }

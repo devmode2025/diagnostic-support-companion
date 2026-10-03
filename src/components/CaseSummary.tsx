@@ -2,6 +2,7 @@
 
 "use client";
 
+import Link from "next/link";
 import type {
   PhaseDefinition,
   TriageCase,
@@ -14,7 +15,10 @@ type Props = {
   phases: PhaseDefinition[];
   categories: Category[];
   severity: Severity[];
-  onReopen: () => void;
+  /** Omit for a read-only published case (roadmap 4.0). */
+  onReopen?: () => void;
+  /** Omit for a read-only published case. */
+  onExport?: () => void;
 };
 
 export function CaseSummary({
@@ -23,6 +27,7 @@ export function CaseSummary({
   categories,
   severity,
   onReopen,
+  onExport,
 }: Props) {
   const category = categories.find((c) => c.id === caseData.classify.category);
   const sev = severity.find((s) => s.id === caseData.classify.severity);
@@ -100,18 +105,29 @@ export function CaseSummary({
       </Section>
 
       <div className="mt-12 pt-6 border-t border-neutral-200 flex items-center gap-4">
-        <button
-          onClick={onReopen}
-          className="text-sm text-neutral-500 hover:text-neutral-900"
-        >
-          Reopen case
-        </button>
-        <a
+        {onReopen && (
+          <button
+            onClick={onReopen}
+            className="text-sm text-neutral-500 hover:text-neutral-900"
+          >
+            Reopen case
+          </button>
+        )}
+        {onExport && (
+          <button
+            onClick={onExport}
+            className="text-sm text-neutral-500 hover:text-neutral-900"
+            title="Download this case as a JSON file to publish in content/cases/"
+          >
+            Export JSON
+          </button>
+        )}
+        <Link
           href="/cases"
           className="ml-auto text-sm text-neutral-500 hover:text-neutral-900"
         >
           All cases →
-        </a>
+        </Link>
       </div>
     </article>
   );

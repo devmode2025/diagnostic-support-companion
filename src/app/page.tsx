@@ -3,10 +3,13 @@
 import Link from "next/link";
 import loop from "@/../content/loop.json";
 import type { Loop } from "@/types/content";
+import { listPublishedCases } from "@/lib/published-cases";
 
 const loopContent = loop as Loop;
 
 export default function HomePage() {
+  const published = listPublishedCases();
+
   return (
     <div className="max-w-2xl mx-auto px-8 py-20">
       <p className="text-xs uppercase tracking-wider text-neutral-500 mb-4">
@@ -35,6 +38,29 @@ export default function HomePage() {
           Provenance
         </Link>
       </div>
+
+      {published.length > 0 && (
+        <section className="mb-16">
+          <h2 className="text-xs uppercase tracking-wider text-neutral-500 mb-4 pb-2 border-b border-neutral-200">
+            Case library
+          </h2>
+          <ul className="space-y-3">
+            {published.map((c) => (
+              <li key={c.slug}>
+                <Link
+                  href={`/cases/${c.slug}`}
+                  className="text-sm font-medium text-neutral-900 underline"
+                >
+                  {c.title}
+                </Link>
+                <p className="text-xs text-neutral-500 mt-0.5">
+                  Worked from public sources · published {c.publishedAt}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mb-16">
         <h2 className="text-xs uppercase tracking-wider text-neutral-500 mb-4 pb-2 border-b border-neutral-200">

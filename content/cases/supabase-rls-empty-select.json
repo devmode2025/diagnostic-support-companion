@@ -1,0 +1,115 @@
+{
+  "slug": "supabase-rls-empty-select",
+  "title": "Supabase: RLS-protected select returns an empty array, with no error",
+  "summary": "A worked public case. A signed-in user's select on an RLS-protected table returns [] while the rows exist, and disabling RLS brings them back. Narrowed by elimination to the policy's type: it was Restrictive, and with no Permissive policy Postgres returns zero rows without raising an error.",
+  "publishedAt": "2026-10-03",
+  "sources": [
+    {
+      "label": "Supabase GitHub Discussion #33500 (the report and accepted answer)",
+      "url": "https://github.com/orgs/supabase/discussions/33500"
+    },
+    {
+      "label": "Supabase Docs: Why is my select returning an empty data array and I have data in the table?",
+      "url": "https://supabase.com/docs/guides/troubleshooting/why-is-my-select-returning-an-empty-data-array-and-i-have-data-in-the-table-xvOPgx"
+    },
+    {
+      "label": "Same pattern: Discussion #12895",
+      "url": "https://github.com/orgs/supabase/discussions/12895"
+    },
+    {
+      "label": "Same pattern: Discussion #3576",
+      "url": "https://github.com/orgs/supabase/discussions/3576"
+    },
+    {
+      "label": "Same pattern: Discussion #3780",
+      "url": "https://github.com/orgs/supabase/discussions/3780"
+    }
+  ],
+  "case": {
+    "id": "sb-33500",
+    "createdAt": "2026-10-01T18:00:00.000Z",
+    "updatedAt": "2026-10-03T15:00:00.000Z",
+    "status": "closed",
+    "timeline": [
+      {
+        "at": "2026-10-01T18:00:00.000Z",
+        "phase": "gate",
+        "note": "Case opened from public GitHub Discussion #33500"
+      },
+      {
+        "at": "2026-10-01T18:10:00.000Z",
+        "phase": 1,
+        "note": "Restated: silent empty result, not an access error"
+      },
+      {
+        "at": "2026-10-01T18:20:00.000Z",
+        "phase": 3,
+        "note": "Matched to a recurring pattern and the Supabase troubleshooting guide's three causes"
+      },
+      {
+        "at": "2026-10-01T18:35:00.000Z",
+        "phase": 4,
+        "note": "Narrowed by elimination to policy type; decision: resolve via known fix"
+      },
+      {
+        "at": "2026-10-03T15:00:00.000Z",
+        "phase": 6,
+        "note": "Closed and published read-only"
+      }
+    ],
+    "receive": {
+      "acknowledged": true,
+      "reporter": "Developer posting publicly on Supabase GitHub Discussions (#33500, 10 Feb 2025)",
+      "reportedAt": "2025-02-10T00:00",
+      "onsetAt": "",
+      "environment": "Supabase project; supabase-js client; table `projects` with Row Level Security enabled; one SELECT policy, \"Users can read their own projects\", using auth.uid() = user_id",
+      "affected": "One developer's application: the per-user project list renders empty",
+      "evidence": "\"SELECT Query Returns Empty Array Despite Existing Data with RLS Enabled.\" The query supabase.from('projects').select('*').eq('user_id', '<USER_ID>') returns data = [] with no error. Rows with that user_id exist. Disabling RLS on the table makes the same query return them.",
+      "missing": "The policy's type (Permissive or Restrictive) and target role; whether the request carries a user session or arrives as anon; whether other policies exist on the table"
+    },
+    "parse": {
+      "restated": "An RLS-protected select returns zero rows and no error for a signed-in user, although matching rows exist; with RLS disabled the same query returns them.",
+      "observableFacts": "1. data is [] and error is null.\n2. Rows with the matching user_id exist.\n3. Disabling RLS returns the rows with the same filter.\n4. The policy expression is auth.uid() = user_id.",
+      "reporterHypothesis": "Something is wrong with the RLS policy (\"What am I getting wrong\").",
+      "scope": "One table, one query path. Nothing suggests other tables, other users or the platform are affected.",
+      "clarifyingQuestions": "Is the policy Permissive or Restrictive? Which role is it granted to? Does the request arrive as authenticated or anon? Are there other policies on `projects`?"
+    },
+    "classify": {
+      "category": "configuration",
+      "severity": "sev4",
+      "severityReconsidered": true,
+      "duplicateOf": "Recurring pattern, not a duplicate ticket: Discussions #3576, #3780, #12895",
+      "securityChecked": true
+    },
+    "contextualize": {
+      "recentChanges": "Not stated in the report.",
+      "serviceHealth": "Not applicable: no platform incident. The failure is specific to one table's policies.",
+      "errorTracker": "Nothing to find. This is a silent failure: the API returns success with an empty array, because Postgres filters rows under RLS rather than raising an error.",
+      "logsAndTraces": "The Supabase troubleshooting guide's diagnostic: call test_authorization_header() to see which role the request arrives as. If it is anon or service_role, there is no user session and auth.uid() cannot match.",
+      "rumAndReplay": "Not applicable.",
+      "patterns": "The same symptom (empty array, no error, data present) recurs in public discussions back to 2021: #3576, #3780, #12895. Supabase's guide lists three causes: RLS enabled with no policy that grants access, no user session, or a filter that matches nothing.",
+      "evidenceBundle": "H1. The filter matches nothing. Ruled out: with RLS disabled, the same filter returns the rows.\nH2. No user session: the request arrives as anon, so auth.uid() is null. Test: test_authorization_header().\nH3. No policy actually grants access. A policy exists, but its type matters: Postgres needs at least one PERMISSIVE policy to grant access; RESTRICTIVE policies only narrow what permissive ones allow.\nFinding (from the discussion's accepted answer): the policy had been created as Restrictive. With no Permissive policy, every row is filtered out and nothing errors."
+    },
+    "triage": {
+      "decision": "resolve",
+      "reasoning": "Configuration inside the customer's control, with a known fix: recreate the policy as Permissive (FOR SELECT, TO authenticated). No platform defect, so no escalation.",
+      "whatWouldChangeMyMind": "If the request arrived as authenticated, the policy were Permissive and rows were still filtered, I would suspect a type mismatch on user_id or a second Restrictive policy, then escalate with a minimal reproduction."
+    },
+    "act": {
+      "path": "runbook",
+      "actionsTaken": "1. Check the policy's type in the dashboard, or pg_policies.permissive.\n2. Recreate it as Permissive: FOR SELECT, TO authenticated, USING (auth.uid() = user_id).\n3. Re-run the same supabase-js query as a signed-in user and confirm rows return.",
+      "deviations": "This is a worked public case. The fix is the one given in the discussion's accepted answer; it was not run against the reporter's project.",
+      "outcome": "The reporter confirmed the fix after switching the policy to Permissive: \"Thanks! Saved my day!\""
+    },
+    "record": {
+      "ticketUpdated": true,
+      "postMortemNeeded": false,
+      "runbookUpdated": false,
+      "alertAdded": false,
+      "testAdded": false,
+      "broadcast": false,
+      "learning": "Silent failures are the expensive ones: an empty array with no error reads as \"no data\", not \"access denied\". Narrow by elimination: disable RLS to rule out the filter, check the request's role to rule out the session, then check the policy type. Follow-through worth proposing: a triage macro for \"empty select with RLS enabled\", a minimal reproduction script, and a dashboard warning when a table has only Restrictive policies.",
+      "phaseThatMattered": "contextualize"
+    }
+  }
+}

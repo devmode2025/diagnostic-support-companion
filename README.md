@@ -58,6 +58,17 @@ and write it down so the next person is faster.
    template-based customer-facing status update draft.
 5. Review completed cases at `/cases`. The **phase that mattered** column
    is the one worth reading.
+6. To publish a case, use **Export JSON** on its summary, fill in the
+   slug, title, summary and sources, and commit the file to
+   `content/cases/<slug>.json`. It then renders read-only at
+   `/cases/<slug>` for anyone.
+
+## Published cases
+
+Worked from public sources and readable by anyone, at a permanent URL:
+
+- [Supabase: RLS-protected select returns an empty array, with no error](https://diagnostic-support-companion.replit.app/cases/supabase-rls-empty-select)
+  — public GitHub Discussion #33500.
 
 Reference material — the loop, the gate, severity, categories, metrics,
 glossary, fluency — is browsable at `/reference`.
@@ -84,6 +95,11 @@ supporting tab, not the product.
 **Local persistence in v1.** Cases are stored in `localStorage`. No
 authentication, no server, no multi-user. These are deliberate non-goals
 for v1 and named increments for later versions.
+
+**Published cases without a backend (v4.0).** Cases chosen for
+publication ship with the app as files in `content/cases/` and render
+read-only at `/cases/<slug>`. Reading needs no server, and each case
+carries its own dated commit. See `docs/roadmap.md` §4.0.
 
 ---
 

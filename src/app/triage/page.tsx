@@ -16,7 +16,7 @@ import severityData from "@/../content/severity.json";
 import { PhaseRenderer } from "@/components/PhaseRenderer";
 import { PhaseStepper } from "@/components/PhaseStepper";
 import { CaseSummary } from "@/components/CaseSummary";
-import { createCase, getCase, saveCase } from "@/lib/cases";
+import { createCase, exportCase, getCase, saveCase } from "@/lib/cases";
 
 const phases = phasesData as PhaseDefinition[];
 const categories = categoriesData as Category[];
@@ -118,6 +118,7 @@ export default function TriagePage() {
             categories={categories}
             severity={severity}
             onReopen={handleReopen}
+            onExport={() => exportCase(caseData)}
           />
         ) : (
           <PhaseRenderer
