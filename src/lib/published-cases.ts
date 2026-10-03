@@ -1,6 +1,6 @@
 // src/lib/published-cases.ts
 //
-// Build-time loader for published cases (roadmap 4.0). Server-only: reads
+// Build-time loader for published cases (roadmap 2.16). Server-only: reads
 // content/cases/*.json from disk. Browser-local cases stay in
 // src/lib/cases.ts and are unaffected.
 

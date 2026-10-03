@@ -9,7 +9,7 @@ export type CaseSource = {
 };
 
 /**
- * A case published read-only with the app (roadmap 4.0).
+ * A case published read-only with the app (roadmap 2.16).
  * Lives in content/cases/<slug>.json and renders at /cases/<slug>.
  */
 export type PublishedCase = {

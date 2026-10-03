@@ -130,7 +130,7 @@ export function deleteCase(id: string): void {
 }
 
 /**
- * Wrap a browser-local case in the published-case shape (roadmap 4.0) and
+ * Wrap a browser-local case in the published-case shape (roadmap 2.16) and
  * download it as JSON. Fill in slug, title, summary and sources, then
  * commit it to content/cases/<slug>.json to publish it read-only.
  */

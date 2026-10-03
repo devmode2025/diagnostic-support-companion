@@ -1,6 +1,6 @@
 // src/app/cases/[slug]/page.tsx
 //
-// Read-only page for a published case (roadmap 4.0). Statically generated
+// Read-only page for a published case (roadmap 2.16). Statically generated
 // from content/cases/<slug>.json at build time; unknown slugs return 404.
 
 import type { Metadata } from "next";

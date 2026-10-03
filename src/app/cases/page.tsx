@@ -1,6 +1,6 @@
 // src/app/cases/page.tsx
 //
-// Published cases (read-only, shipped with the app; roadmap 4.0) above the
+// Published cases (read-only, shipped with the app; roadmap 2.16) above the
 // visitor's own browser-local cases.
 
 import Link from "next/link";

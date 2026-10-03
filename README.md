@@ -100,10 +100,10 @@ supporting tab, not the product.
 authentication, no server, no multi-user. These are deliberate non-goals
 for v1 and named increments for later versions.
 
-**Published cases without a backend (v4.0).** Cases chosen for
+**Published cases without a backend (roadmap 2.16).** Cases chosen for
 publication ship with the app as files in `content/cases/` and render
 read-only at `/cases/<slug>`. Reading needs no server, and each case
-carries its own dated commit. See `docs/roadmap.md` §4.0.
+carries its own dated commit. See `docs/roadmap.md` §2.16.
 
 ---
 

@@ -15,7 +15,7 @@ type Props = {
   phases: PhaseDefinition[];
   categories: Category[];
   severity: Severity[];
-  /** Omit for a read-only published case (roadmap 4.0). */
+  /** Omit for a read-only published case (roadmap 2.16). */
   onReopen?: () => void;
   /** Omit for a read-only published case. */
   onExport?: () => void;

@@ -1,6 +1,11 @@
-## v4 — Published cases
+## v2 — Shipped since v1
 
-### 4.0 Published case library (read-only, no backend)
+The full v2 list (2.1–2.15) lives in the master project document; this
+file carries the entries built since. Numbering follows the master's rule:
+an entry goes in the bucket that matches its trigger, so a feature whose
+trigger has arrived is v2 however it is sized.
+
+### 2.16 Published case library (read-only, no backend) — SHIPPED 3 October 2026
 
 **Why.** Cases live only in the browser's `localStorage` (`dsc.cases`
 in `src/lib/cases.ts`). That had two consequences nobody intended:
@@ -28,12 +33,26 @@ browser-local cases. Private working cases stay in `localStorage` until
 the author chooses to publish one; an "Export JSON" control on a case
 produces the file to commit.
 
-**Why not a database (4.1).** 4.1's trigger is "more than one person
-needs to see the same case log." A reader needs to *view* a case, not
-edit it, and read-only viewing needs no server, auth, sessions or
-retention policy. Files in the repo are also version-controlled: every
-published case carries a dated commit, which is its own provenance. 4.1
-stays deferred, with its trigger unchanged.
+**Why not a database (2.13 or 4.1).** 4.1's trigger is "more than one
+person needs to see the same case log." A reader needs to *view* a case,
+not edit it, and read-only viewing needs no server, auth, sessions or
+retention policy, so 4.1 stays deferred with its trigger unchanged.
+2.13 (single-user managed Postgres) does not answer this either: it makes
+every stored case durable, but publishing is a deliberate per-case
+decision, made after the sources are checked, and a working draft must
+never become public by being saved. 2.13 still stands on its own terms,
+durability, and is unchanged by this entry. Files in the repo are also
+version-controlled, so every published case carries a dated commit,
+which is its own provenance.
+
+**Relationship to 2.5 and 2.10.** 2.10 (print and share view) named the
+same reader, someone who has never opened the app, and was waiting for
+the first interview. Its trigger arrived early, in an application answer,
+and this entry delivers its shareable half: a clean page per case. The
+print stylesheet is still open under 2.10. 2.5 (export and import) is
+half done: the "Export JSON" control writes a case to a file, wrapped in
+the published-case header. Import, and a plain round trip in the
+`TriageCase` shape, are still open under 2.5.
 
 **Rules for publishing.**
 
@@ -246,7 +265,7 @@ deployment. Commit `fc697e2`.
 reference tab, sourced from `content/testing-policy.json`. Commit
 `9488cc4`.
 
-**2026-10-03** — v4.0 published case library: read-only cases shipped as
+**2026-10-03** — 2.16 published case library: read-only cases shipped as
 files in `content/cases/`, each at `/cases/<slug>`. First case: Supabase
 Discussion #33500. Case 1 (`cisco`) published from the original record. Case 002
 (openai-agents-js #799) published with phases 4–5 completed 3 October.
