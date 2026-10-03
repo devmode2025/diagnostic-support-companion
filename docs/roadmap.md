@@ -275,3 +275,10 @@ completed, and closed records that the case was worked, not how it
 ended. Status now always shows with its outcome ("Closed · escalated")
 on the case summary and the published-case list, from the Phase 5 path
 or, failing that, the Phase 4 decision (`src/lib/case-status.ts`).
+
+**2026-10-03** — Two fixes to the browser case log. Opening Triage no
+longer saves an empty case: a new case lives in memory until Phase 0 is
+completed, and empty drafts already saved are cleared when the case log
+loads (they hold no answers, since answers save only on phase
+completion). The Decision column shows "—" until Phase 4 is completed,
+instead of the "Investigate" default every new case carries.

@@ -45,10 +45,9 @@ export default function TriagePage() {
       }
     }
 
-    const fresh = createCase();
-    saveCase(fresh);
-    setCaseData(fresh);
-    window.history.replaceState(null, "", `/triage?id=${fresh.id}`);
+    // A new case lives in memory until its first phase is completed, so
+    // opening Triage and leaving does not leave an empty case behind.
+    setCaseData(createCase());
   }, []);
 
   if (!caseData) {
@@ -87,6 +86,9 @@ export default function TriagePage() {
 
     setCaseData(updated);
     saveCase(updated);
+    if (new URLSearchParams(window.location.search).get("id") !== updated.id) {
+      window.history.replaceState(null, "", `/triage?id=${updated.id}`);
+    }
   }
 
   function handleBack() {

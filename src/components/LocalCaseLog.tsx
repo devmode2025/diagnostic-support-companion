@@ -11,7 +11,7 @@ import type { TriageCase, TriageDecision } from "@/types/triage";
 import type { Category, Severity } from "@/types/content";
 import categoriesData from "@/../content/categories.json";
 import severityData from "@/../content/severity.json";
-import { listCases } from "@/lib/cases";
+import { listCases, phaseDone, pruneEmptyDrafts } from "@/lib/cases";
 
 const categories = categoriesData as Category[];
 const severity = severityData as Severity[];
@@ -22,6 +22,7 @@ export function LocalCaseLog() {
   const [severityFilter, setSeverityFilter] = useState("");
 
   useEffect(() => {
+    pruneEmptyDrafts();
     setCases(listCases());
   }, []);
 
@@ -115,7 +116,9 @@ export function LocalCaseLog() {
                   </Td>
                   <Td>{cat?.label ?? "—"}</Td>
                   <Td>{sev?.label ?? "—"}</Td>
-                  <Td>{labelDecision(c.triage.decision)}</Td>
+                  <Td>
+                    {phaseDone(c, 4) ? labelDecision(c.triage.decision) : "—"}
+                  </Td>
                   <Td mono>{c.record.phaseThatMattered || "—"}</Td>
                 </tr>
               );

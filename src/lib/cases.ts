@@ -123,6 +123,40 @@ export function listCases(): TriageCase[] {
   );
 }
 
+/**
+ * True once phase `n` has been completed: every completion adds a numbered
+ * timeline entry, and a closed case has been through the gate. Fields carry
+ * defaults from createCase() (the decision starts as "investigate"), so a
+ * field's value alone does not show that the phase was done.
+ */
+export function phaseDone(c: TriageCase, n: number): boolean {
+  return c.status === "closed" || c.timeline.some((t) => t.phase === n);
+}
+
+/** An in-progress case with no completed phase holds no user input. */
+export function isEmptyDraft(c: TriageCase): boolean {
+  return (
+    c.status !== "closed" && !c.timeline.some((t) => typeof t.phase === "number")
+  );
+}
+
+/**
+ * Remove empty drafts. Answers are saved only when a phase is completed, so
+ * a case with no completed phase has nothing in it to lose. Drafts like
+ * these piled up when every visit to /triage saved a new case.
+ */
+export function pruneEmptyDrafts(): void {
+  const map = readAll();
+  let changed = false;
+  for (const [id, c] of Object.entries(map)) {
+    if (isEmptyDraft(c)) {
+      delete map[id];
+      changed = true;
+    }
+  }
+  if (changed) writeAll(map);
+}
+
 export function deleteCase(id: string): void {
   const map = readAll();
   delete map[id];
