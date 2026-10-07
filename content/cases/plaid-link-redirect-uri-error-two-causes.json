@@ -1,0 +1,115 @@
+{
+  "slug": "plaid-link-redirect-uri-error-two-causes",
+  "title": "Plaid Link: one error message, two different root causes",
+  "summary": "A worked public case. Plaid Link fails with \"OAuth redirect URI must be configured in the developer dashboard.\" In plaid-link-ios #25 the real cause was an expired link_token; in tiny-quickstart #65 it was a blank redirect_uri sent to /link/token/create. The error text was treated as a hypothesis, not a fact: check the token's age and the request payload before touching the Dashboard.",
+  "publishedAt": "2026-10-07",
+  "sources": [
+    {
+      "label": "plaid/plaid-link-ios issue #25: Misleading error for expired link_token (open)",
+      "url": "https://github.com/plaid/plaid-link-ios/issues/25"
+    },
+    {
+      "label": "plaid/tiny-quickstart PR #65: Fix blank OAuth redirect URI (merged 18 Sep 2026)",
+      "url": "https://github.com/plaid/tiny-quickstart/pull/65"
+    },
+    {
+      "label": "Plaid Docs: Link OAuth guide (redirect URIs must be added to Allowed redirect URIs)",
+      "url": "https://plaid.com/docs/link/oauth/"
+    },
+    {
+      "label": "Plaid API Docs: /link/token/create (link_token expires after 4 hours by default)",
+      "url": "https://plaid.com/docs/api/link/"
+    },
+    {
+      "label": "Plaid Docs: Link troubleshooting",
+      "url": "https://plaid.com/docs/link/troubleshooting/"
+    }
+  ],
+  "case": {
+    "id": "pl-ios25",
+    "createdAt": "2026-10-07T17:30:00.000Z",
+    "updatedAt": "2026-10-07T18:30:00.000Z",
+    "status": "closed",
+    "timeline": [
+      {
+        "at": "2026-10-07T17:30:00.000Z",
+        "phase": "gate",
+        "note": "Case opened from public GitHub issue plaid/plaid-link-ios #25"
+      },
+      {
+        "at": "2026-10-07T17:40:00.000Z",
+        "phase": 1,
+        "note": "Restated: Link fails to open with a redirect-URI error although the redirect URI is registered. The error text is the SDK's hypothesis, not an observed fact"
+      },
+      {
+        "at": "2026-10-07T17:55:00.000Z",
+        "phase": 3,
+        "note": "Found a second public artifact with the same message and a different cause: tiny-quickstart PR #65 (blank redirect_uri in the request)"
+      },
+      {
+        "at": "2026-10-07T18:10:00.000Z",
+        "phase": 4,
+        "note": "Decision: escalate the misleading message with the evidence bundle; unblock the developer with a fresh link_token meanwhile"
+      },
+      {
+        "at": "2026-10-07T18:30:00.000Z",
+        "phase": 6,
+        "note": "Closed and published read-only"
+      }
+    ],
+    "receive": {
+      "acknowledged": true,
+      "reporter": "Developer filing publicly on plaid/plaid-link-ios (issue #25), reproducing with Plaid's LinkDemo-SwiftUI sample app",
+      "reportedAt": "",
+      "onsetAt": "",
+      "environment": "LinkKit 4.6.5, iOS 17.0, iPhone 15 simulator, Sandbox. Redirect URI configured as a Universal Link in the apple-app-site-association file and registered in the Plaid Dashboard",
+      "affected": "One developer's integration in Sandbox: Link will not open. Any developer who reuses a stale link_token would see the same thing",
+      "evidence": "Link shows \"OAuth redirect URI must be configured in the developer dashboard.\" Steps given: register the redirect URI, create a link_token via the API, let it expire, pass it to LinkTokenConfiguration and Plaid.create(), tap \"Open Plaid Link.\" Expected an expired-token error; got a redirect-URI error.",
+      "missing": "The link_token's creation time and the expiration value /link/token/create returned; the exact redirect_uri string sent in that request; whether Link was preloaded and which LinkEvents fired before the error"
+    },
+    "parse": {
+      "restated": "Link fails before opening with an error that blames the redirect URI, while the redirect URI is registered and the token passed in has expired.",
+      "observableFacts": "1. The message names the redirect URI as the cause.\n2. The redirect URI is registered in the Dashboard and the apple-app-site-association file.\n3. The link_token passed to Plaid.create() was past its expiry.\n4. Reproduced in Plaid's own sample app, so the developer's app code is not the variable.",
+      "reporterHypothesis": "The SDK reports the wrong error for an expired token.",
+      "scope": "Link initialization only. No Item, access_token or product call is involved. Likely any LinkKit integration that reuses a token after expiry.",
+      "clarifyingQuestions": "How old was the token when Plaid.create() ran? What did the expiration field in the /link/token/create response say? Exactly what redirect_uri was sent: a value, an empty string, or omitted? Was Link preloaded, and did a LinkEvent carry an error code before the message appeared?"
+    },
+    "classify": {
+      "category": "functional_defect",
+      "severity": "sev4",
+      "severityReconsidered": true,
+      "duplicateOf": "Related, not a duplicate: tiny-quickstart PR #65 shows the same message with a different cause",
+      "securityChecked": true
+    },
+    "contextualize": {
+      "recentChanges": "tiny-quickstart PR #65, merged 18 Sep 2026, changed five sample servers (JavaScript, TypeScript, React, Next.js, React Native) to omit redirect_uri when PLAID_SANDBOX_REDIRECT_URI is blank. Before it, a blank environment variable sent an empty redirect_uri and Link failed with this same message.",
+      "serviceHealth": "Not applicable: Sandbox, single developer, no platform incident.",
+      "errorTracker": "Per the maintainer's reply on #25, a preloaded Link emits a LinkEvent with the underlying error (an invalid link_token) before Link opens. That event, not the on-screen message, is the reliable signal.",
+      "logsAndTraces": "Two checks settle it without a Dashboard change. (a) Token age: compare now with the creation time; /link/token/create returns an expiration, 4 hours by default. (b) The request body: was redirect_uri a registered value, blank, or absent?",
+      "rumAndReplay": "Not applicable: initialization failure, no user session to replay.",
+      "patterns": "One message, two documented causes. Expired link_token: plaid-link-ios #25 (still open; reconfirmed by a later commenter with the official sample app). Blank redirect_uri in the request: tiny-quickstart #65. A third cause, the documented one, is a redirect URI genuinely missing from the Dashboard's Allowed redirect URIs.",
+      "evidenceBundle": "H1. The redirect URI is not registered. Ruled out: registered in the Dashboard and the apple-app-site-association file.\nH2. A blank or malformed redirect_uri was sent. The tiny-quickstart #65 cause. Test: log the /link/token/create request body. Not the cause in #25, which used a registered URI.\nH3. The link_token expired. Matches #25's reproduction steps exactly. Test: create a fresh token and retry; the error clears.\nFinding: in #25 the cause is H3, and the message points at H1. The defect is the error mapping, not the developer's configuration."
+    },
+    "triage": {
+      "decision": "escalate",
+      "reasoning": "Two things to do, and only one is in support's hands. The developer is unblocked at once by a fresh link_token. The misleading message is a product defect in Link's error mapping, which support cannot fix, so it goes to the Link SDK team with a reproduction and both public artifacts. It also costs every developer who meets it a detour into Dashboard settings that are already correct.",
+      "whatWouldChangeMyMind": "If a fresh token still produced the error, H3 is wrong: I would capture the exact redirect_uri in the request (H2), then check the Allowed redirect URIs list and the Universal Link setup (H1) before escalating anything."
+    },
+    "act": {
+      "path": "escalation",
+      "actionsTaken": "1. Unblock: create a new link_token immediately before Plaid.create(), never reuse a cached one; regenerate on expiry.\n2. Harden: listen for LinkEvents on a preloaded Link and log the error code, so the real cause is visible even when the message is wrong.\n3. Rule out the other cause: send redirect_uri only when it holds a registered value, as tiny-quickstart #65 now does.\n4. Escalation package for the Link SDK team: reproduction (LinkKit 4.6.5, iOS 17, Sandbox, expired token, official sample app), expected vs actual message, the maintainer's note that a LinkEvent already carries the right error, and the request that the on-screen message use it.",
+      "deviations": "Worked from public sources. The escalation package is prepared, not filed: I have no access to Plaid's internal tracker, and #25 is already the public record of the defect.",
+      "outcome": "The developer's workaround is known (fresh token). plaid-link-ios #25 appears to be open as of 7 Oct 2026, so the message itself was not confirmed fixed. tiny-quickstart #65, the second cause, is merged."
+    },
+    "record": {
+      "ticketUpdated": true,
+      "postMortemNeeded": false,
+      "runbookUpdated": false,
+      "alertAdded": false,
+      "testAdded": false,
+      "broadcast": false,
+      "learning": "An error message is the system's hypothesis about what went wrong, not evidence. Here the same text came from an expired token in one report and a blank request field in another, and in neither case was the Dashboard the problem. Ask for token age and the request payload before asking anyone to change settings. Follow-through worth proposing: a support macro for this message that checks token age and redirect_uri first, and a docs note listing all three causes.",
+      "phaseThatMattered": "parse"
+    }
+  }
+}

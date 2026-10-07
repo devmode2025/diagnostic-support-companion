@@ -282,3 +282,8 @@ completed, and empty drafts already saved are cleared when the case log
 loads (they hold no answers, since answers save only on phase
 completion). The Decision column shows "—" until Phase 4 is completed,
 instead of the "Investigate" default every new case carries.
+
+**2026-10-07** — Fourth published case: Plaid Link's "OAuth redirect URI
+must be configured" message traced to two different root causes in public
+artifacts (an expired link_token in plaid-link-ios #25, a blank
+redirect_uri in tiny-quickstart #65).

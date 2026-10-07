@@ -82,6 +82,8 @@ Worked from public sources and readable by anyone, at a permanent URL:
   — case 1, the original record from 25 September 2026.
 - [openai-agents-js #799: tool-input errors discard the evidence needed to recover](https://diagnostic-support-companion.replit.app/cases/openai-agents-js-799-tool-input-errors)
   — case 002, public GitHub issue.
+- [Plaid Link: one error message, two different root causes](https://diagnostic-support-companion.replit.app/cases/plaid-link-redirect-uri-error-two-causes)
+  — public GitHub issue plaid-link-ios #25 and PR tiny-quickstart #65.
 
 Reference material — the loop, the gate, severity, categories, metrics,
 glossary, fluency — is browsable at `/reference`.
