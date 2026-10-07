@@ -287,3 +287,7 @@ instead of the "Investigate" default every new case carries.
 must be configured" message traced to two different root causes in public
 artifacts (an expired link_token in plaid-link-ios #25, a blank
 redirect_uri in tiny-quickstart #65).
+
+**2026-10-07** — Fifth published case: PropelAuth/nextjs #86, a refresh
+429 collapsed into "unexpected" and thrown as a 500; reading the source
+at 40740a4 found seven affected call sites where the report named two.

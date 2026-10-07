@@ -1,0 +1,111 @@
+{
+  "slug": "propelauth-nextjs-refresh-429-becomes-500",
+  "title": "PropelAuth Next.js: a rate-limited token refresh surfaces as a 500",
+  "summary": "A worked public case. When PropelAuth's refresh endpoint returns 429, @propelauth/nextjs 0.3.17 files it under \"unexpected\" and throws, so Next.js answers 500 and the app cannot tell a rate limit from an outage. The report names two throw sites; reading the source finds seven. Includes a workaround the app can apply today and a scoped fix for the library.",
+  "publishedAt": "2026-10-07",
+  "sources": [
+    {
+      "label": "PropelAuth/nextjs issue #86: Refresh 429s are thrown as unexpected errors and become 500s (opened 24 Sep 2026, open, no replies as of 7 Oct)",
+      "url": "https://github.com/PropelAuth/nextjs/issues/86"
+    },
+    {
+      "label": "PropelAuth/nextjs source at 40740a4 (0.3.17): src/server/shared.ts, refreshTokenWithAccessAndRefreshToken",
+      "url": "https://github.com/PropelAuth/nextjs/blob/40740a4/src/server/shared.ts"
+    },
+    {
+      "label": "PropelAuth/nextjs source at 40740a4: src/server/app-router.ts (callback, userinfo, logout GET, set-active-org handlers)",
+      "url": "https://github.com/PropelAuth/nextjs/blob/40740a4/src/server/app-router.ts"
+    },
+    {
+      "label": "PropelAuth/nextjs source at 40740a4: src/server/pages.ts and src/server/middleware/advanced-middleware.ts",
+      "url": "https://github.com/PropelAuth/nextjs/tree/40740a4/src/server"
+    }
+  ],
+  "case": {
+    "id": "pa-nx86",
+    "createdAt": "2026-10-07T19:00:00.000Z",
+    "updatedAt": "2026-10-07T20:00:00.000Z",
+    "status": "closed",
+    "timeline": [
+      {
+        "at": "2026-10-07T19:00:00.000Z",
+        "phase": "gate",
+        "note": "Case opened from public GitHub issue PropelAuth/nextjs #86 (opened 24 Sep 2026; no replies)"
+      },
+      {
+        "at": "2026-10-07T19:10:00.000Z",
+        "phase": 1,
+        "note": "Restated: a retryable upstream 429 is reported to the app's users as a 500"
+      },
+      {
+        "at": "2026-10-07T19:30:00.000Z",
+        "phase": 3,
+        "note": "Read the source at 40740a4: the classification is in one function, but seven call sites act on it, not the two the report names"
+      },
+      {
+        "at": "2026-10-07T19:45:00.000Z",
+        "phase": 4,
+        "note": "Decision: investigate as a work ticket for a small library fix; give the customer a workaround now"
+      },
+      {
+        "at": "2026-10-07T20:00:00.000Z",
+        "phase": 6,
+        "note": "Closed and published read-only"
+      }
+    ],
+    "receive": {
+      "acknowledged": true,
+      "reporter": "Developer filing publicly on PropelAuth/nextjs (issue #86, 24 Sep 2026), offering to share traces",
+      "reportedAt": "2026-09-24T00:00",
+      "onsetAt": "",
+      "environment": "@propelauth/nextjs 0.3.17, Next.js App Router, auth middleware in use; refresh calls go to POST /api/backend/v1/refresh_token",
+      "affected": "End users of the reporter's app: requests that need a token refresh fail with 500 while the refresh endpoint is rate-limiting. Any app on this library version can hit it under burst load",
+      "evidence": "\"When POST /api/backend/v1/refresh_token returns 429, @propelauth/nextjs treats it as an unexpected failure and throws.\" In the App Router this surfaces as a 500 from /api/auth/userinfo; the same throw happens in auth middleware. Code locations cited: shared.ts lines 131–135, app-router.ts 268–270, advanced-middleware.ts 56–58, at commit 40740a4.",
+      "missing": "How often the 429s occur and under what traffic (page loads, tab focus, parallel requests); whether the refresh endpoint sends Retry-After; the traces the reporter offered"
+    },
+    "parse": {
+      "restated": "A rate-limited token refresh, which is expected and retryable, is reported to the app's users as a 500, so the app cannot return 429 or honour Retry-After.",
+      "observableFacts": "1. The refresh endpoint returns 429.\n2. refreshTokenWithAccessAndRefreshToken maps only 400 and 401 to \"unauthorized\"; every other status, 429 included, becomes { error: \"unexpected\" } with no status attached.\n3. Callers throw Error(\"Unexpected error while refreshing access token\") on \"unexpected\".\n4. Next.js turns the uncaught throw into a 500.",
+      "reporterHypothesis": "The library should treat 429 as its own case, carry the upstream status and Retry-After, and return 429 from userinfo and middleware instead of throwing.",
+      "scope": "Every code path that refreshes a token, in both routers, not only the two named in the report. Not a PropelAuth outage: the 429 is the service working as designed.",
+      "clarifyingQuestions": "What traffic triggers the 429s: many tabs, parallel requests, a userinfo call on every navigation? Does the response carry Retry-After? Are other 5xx or network errors also being thrown, or only 429?"
+    },
+    "classify": {
+      "category": "functional_defect",
+      "severity": "sev3",
+      "severityReconsidered": true,
+      "duplicateOf": "",
+      "securityChecked": true
+    },
+    "contextualize": {
+      "recentChanges": "None relevant: the last commit, 40740a4 on 21 Apr 2026, adds a URL to package.json. The refresh error handling is long-standing.",
+      "serviceHealth": "Not an outage. A 429 means the refresh endpoint is applying its rate limit; the defect is in how the client library reports it.",
+      "errorTracker": "Every one of these failures logs the same generic message, \"Unexpected error while refreshing access token\", with no status code, so a rate limit, a 5xx from the auth service and a bug all look identical in the app's logs.",
+      "logsAndTraces": "From the source at 40740a4, seven call sites act on the \"unexpected\" result. Six throw: callbackGetHandler (setting the active org at login), userinfoGetHandler, setActiveOrgHandler, getAuthInfoFromServerSideProps and getAuthInfoFromApiRouteRequest (Pages Router), and buildAuthMiddleware. One, logoutGetHandler, returns a plain 500. The report names two of the seven.",
+      "rumAndReplay": "Not available; the reporter offered traces, which would show the request pattern behind the 429s.",
+      "patterns": "One plausible source of volume, unconfirmed: userinfoGetHandler refreshes on every call (the code comments that it wants the most up-to-date info), so frequent userinfo calls from many tabs mean frequent refreshes.",
+      "evidenceBundle": "H1. PropelAuth's auth service is failing. Ruled out: 429 is a deliberate rate-limit response, not a failure.\nH2. The app is misusing the library. Not supported: the throw comes from inside the library's own handlers and middleware.\nH3. The library collapses 429 into \"unexpected\" and then throws. Confirmed by reading shared.ts and its seven callers at 40740a4.\nFinding: one classification bug in one function, with seven places that turn it into a crash. A fix that touches only userinfo and middleware would leave five paths still throwing."
+    },
+    "triage": {
+      "decision": "investigate",
+      "reasoning": "This is a small, well-located library defect with a clear fix, so it becomes a work ticket rather than an escalation: in a five-person company the support engineer can write the patch. The customer needs a stopgap first, because a 500 on refresh breaks whatever the user was doing.",
+      "whatWouldChangeMyMind": "If the traces showed refresh volume far beyond normal use, the bigger problem would be the request pattern (or the rate limit itself), and the case would go to whoever owns the limit before any library change."
+    },
+    "act": {
+      "path": "novel",
+      "actionsTaken": "1. Customer workaround, today: wrap the exported route handlers and the middleware in try/catch, and on \"Unexpected error while refreshing access token\" return 503 with a short Retry-After instead of letting Next.js send 500. It is coarse, since the library hides the real status, but it stops users seeing a crash.\n2. Reduce refresh pressure: avoid calling /api/auth/userinfo on every navigation or tab focus, since each call refreshes.\n3. Library fix, scoped: in refreshTokenWithAccessAndRefreshToken add a rate_limited result carrying the status and any Retry-After; in route handlers and middleware return 429 with Retry-After; in the Pages Router helpers throw a typed, catchable exception instead of a generic Error. Change all seven call sites, and add a test per site so a new caller cannot reintroduce the throw.\n4. Reply on the issue with the full list of seven call sites and ask for the traces to confirm what drives the 429s.",
+      "deviations": "Worked from public sources. The workaround and the fix are proposals, written but not run against the reporter's app; the library has no test suite in the repository to run them against.",
+      "outcome": "Issue #86 is open with no replies as of 7 Oct 2026, so neither fix is confirmed. The case narrows the work to one function and seven call sites and gives the customer a stopgap."
+    },
+    "record": {
+      "ticketUpdated": true,
+      "postMortemNeeded": false,
+      "runbookUpdated": false,
+      "alertAdded": false,
+      "testAdded": false,
+      "broadcast": false,
+      "learning": "A good bug report names the places it hit; reading the code finds the places it will hit next. The 429 was never the problem. Collapsing every non-auth status into \"unexpected\" hid it, and the same generic message in every log made a rate limit look like an outage. Follow-through: a test per refresh call site, the upstream status in every error message, and a docs note on how often userinfo refreshes.",
+      "phaseThatMattered": "contextualize"
+    }
+  }
+}

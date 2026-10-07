@@ -84,6 +84,8 @@ Worked from public sources and readable by anyone, at a permanent URL:
   — case 002, public GitHub issue.
 - [Plaid Link: one error message, two different root causes](https://diagnostic-support-companion.replit.app/cases/plaid-link-redirect-uri-error-two-causes)
   — public GitHub issue plaid-link-ios #25 and PR tiny-quickstart #65.
+- [PropelAuth Next.js: a rate-limited token refresh surfaces as a 500](https://diagnostic-support-companion.replit.app/cases/propelauth-nextjs-refresh-429-becomes-500)
+  — public GitHub issue PropelAuth/nextjs #86, traced through the source.
 
 Reference material — the loop, the gate, severity, categories, metrics,
 glossary, fluency — is browsable at `/reference`.
