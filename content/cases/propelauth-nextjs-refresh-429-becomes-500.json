@@ -1,12 +1,16 @@
 {
   "slug": "propelauth-nextjs-refresh-429-becomes-500",
   "title": "PropelAuth Next.js: a rate-limited token refresh surfaces as a 500",
-  "summary": "A worked public case. When PropelAuth's refresh endpoint returns 429, @propelauth/nextjs 0.3.17 files it under \"unexpected\" and throws, so Next.js answers 500 and the app cannot tell a rate limit from an outage. The report names two throw sites; reading the source finds seven. Includes a workaround the app can apply today and a scoped fix for the library.",
+  "summary": "A worked public case. When PropelAuth's refresh endpoint returns 429, @propelauth/nextjs 0.3.17 files it under \"unexpected\" and throws, so Next.js answers 500 and the app cannot tell a rate limit from an outage. The report names two throw sites; reading the source finds seven. Includes a workaround the app can apply today, and the fix, submitted upstream as PropelAuth/nextjs PR #87.",
   "publishedAt": "2026-10-07",
   "sources": [
     {
       "label": "PropelAuth/nextjs issue #86: Refresh 429s are thrown as unexpected errors and become 500s (opened 24 Sep 2026, open, no replies as of 7 Oct)",
       "url": "https://github.com/PropelAuth/nextjs/issues/86"
+    },
+    {
+      "label": "PropelAuth/nextjs PR #87: Return 429 instead of throwing when a token refresh is rate-limited (opened 7 Oct 2026 by the author of this case)",
+      "url": "https://github.com/PropelAuth/nextjs/pull/87"
     },
     {
       "label": "PropelAuth/nextjs source at 40740a4 (0.3.17): src/server/shared.ts, refreshTokenWithAccessAndRefreshToken",
@@ -24,7 +28,7 @@
   "case": {
     "id": "pa-nx86",
     "createdAt": "2026-10-07T19:00:00.000Z",
-    "updatedAt": "2026-10-07T20:00:00.000Z",
+    "updatedAt": "2026-10-07T22:15:00.000Z",
     "status": "closed",
     "timeline": [
       {
@@ -51,6 +55,11 @@
         "at": "2026-10-07T20:00:00.000Z",
         "phase": 6,
         "note": "Closed and published read-only"
+      },
+      {
+        "at": "2026-10-07T22:10:00.000Z",
+        "phase": 5,
+        "note": "Fix submitted upstream as PR #87: all seven call sites changed; verified against the built package with a mocked 429 (before: throw or 500; after: 429 with Retry-After)"
       }
     ],
     "receive": {
@@ -94,8 +103,8 @@
     "act": {
       "path": "novel",
       "actionsTaken": "1. Customer workaround, today: wrap the exported route handlers and the middleware in try/catch, and on \"Unexpected error while refreshing access token\" return 503 with a short Retry-After instead of letting Next.js send 500. It is coarse, since the library hides the real status, but it stops users seeing a crash.\n2. Reduce refresh pressure: avoid calling /api/auth/userinfo on every navigation or tab focus, since each call refreshes.\n3. Library fix, scoped: in refreshTokenWithAccessAndRefreshToken add a rate_limited result carrying the status and any Retry-After; in route handlers and middleware return 429 with Retry-After; in the Pages Router helpers throw a typed, catchable exception instead of a generic Error. Change all seven call sites, and add a test per site so a new caller cannot reintroduce the throw.\n4. Reply on the issue with the full list of seven call sites and ask for the traces to confirm what drives the 429s.",
-      "deviations": "Worked from public sources. The workaround and the fix are proposals, written but not run against the reporter's app; the library has no test suite in the repository to run them against.",
-      "outcome": "Issue #86 is open with no replies as of 7 Oct 2026, so neither fix is confirmed. The case narrows the work to one function and seven call sites and gives the customer a stopgap."
+      "deviations": "Worked from public sources. The app-side workaround is a proposal, not run against the reporter's app. The library fix was built and checked locally with a mocked refresh endpoint, since the repository has no test suite; that check is described in the PR.",
+      "outcome": "Fix submitted as PropelAuth/nextjs PR #87 on 7 Oct 2026, awaiting maintainer review. Verified against the built package: with a mocked 429 and Retry-After: 7, the middleware and the userinfo and logout routes now return 429 with Retry-After instead of throwing or returning 500, and the Pages Router helper throws a catchable RefreshRateLimitedException; a 503 behaves as before."
     },
     "record": {
       "ticketUpdated": true,

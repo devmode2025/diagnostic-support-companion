@@ -291,3 +291,6 @@ redirect_uri in tiny-quickstart #65).
 **2026-10-07** — Fifth published case: PropelAuth/nextjs #86, a refresh
 429 collapsed into "unexpected" and thrown as a 500; reading the source
 at 40740a4 found seven affected call sites where the report named two.
+
+**2026-10-07** — Case 5 updated: the fix it proposed was submitted
+upstream as PropelAuth/nextjs PR #87.
