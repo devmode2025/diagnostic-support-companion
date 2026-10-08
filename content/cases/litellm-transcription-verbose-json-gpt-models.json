@@ -1,12 +1,16 @@
 {
   "slug": "litellm-transcription-verbose-json-gpt-models",
   "title": "LiteLLM: newer GPT transcription models are sent a format they reject",
-  "summary": "A worked public case. A LiteLLM proxy user reports that audio transcription with a newer OpenAI model fails because LiteLLM always adds response_format: verbose_json, and asks for a per-model default. Reproducing it shows the per-model default already works through litellm_params, which unblocks the customer today. The real defect is a substring check: only model names containing \"gpt-4o\" get the GPT transcription config, so every newer gpt-* model inherits Whisper's verbose_json default.",
+  "summary": "A worked public case. A LiteLLM proxy user reports that audio transcription with a newer OpenAI model fails because LiteLLM always adds response_format: verbose_json, and asks for a per-model default. Reproducing it shows the per-model default already works through litellm_params, which unblocks the customer today. The real defect is a substring check: only model names containing \"gpt-4o\" get the GPT transcription config, so every newer gpt-* model inherits Whisper's verbose_json default. A community pull request (#44021) already makes the same fix; I verified it against my reproduction, so the right move is a review, not a second PR.",
   "publishedAt": "2026-10-08",
   "sources": [
     {
-      "label": "BerriAI/litellm issue #43867: default response format breaks gpt-realtime and is not overwritable (opened 30 Sep 2026, open, no replies as of 8 Oct)",
+      "label": "BerriAI/litellm issue #43867: default response format breaks gpt-realtime and is not overwritable (opened 30 Sep 2026, open, no maintainer replies as of 8 Oct)",
       "url": "https://github.com/BerriAI/litellm/issues/43867"
+    },
+    {
+      "label": "BerriAI/litellm PR #44021: fix(openai): route gpt-transcribe to GPT audio transcription config (opened 1 Oct 2026 by a community contributor, unmerged as of 8 Oct)",
+      "url": "https://github.com/BerriAI/litellm/pull/44021"
     },
     {
       "label": "LiteLLM source at 29f48e6 (main, 8 Oct 2026): litellm/utils.py, ProviderConfigManager.get_provider_audio_transcription_config",
@@ -28,13 +32,13 @@
   "case": {
     "id": "ll-43867",
     "createdAt": "2026-10-08T20:15:00.000Z",
-    "updatedAt": "2026-10-08T21:30:00.000Z",
+    "updatedAt": "2026-10-08T21:10:00.000Z",
     "status": "closed",
     "timeline": [
       {
         "at": "2026-10-08T20:15:00.000Z",
         "phase": "gate",
-        "note": "Case opened from public GitHub issue BerriAI/litellm #43867 (opened 30 Sep 2026; no replies, no linked PR)"
+        "note": "Case opened from public GitHub issue BerriAI/litellm #43867 (opened 30 Sep 2026; no maintainer replies)"
       },
       {
         "at": "2026-10-08T20:25:00.000Z",
@@ -52,7 +56,12 @@
         "note": "Decision: unblock the customer with a config change now, and investigate as a one-line library fix with a regression test"
       },
       {
-        "at": "2026-10-08T21:30:00.000Z",
+        "at": "2026-10-08T21:05:00.000Z",
+        "phase": 5,
+        "note": "Before posting, found community PR #44021 (opened 1 Oct) with the same root cause, missed on the first read. Ran the reproduction and the OpenAI transcription tests against its head: all pass. Dropped my own PR in favour of verifying theirs"
+      },
+      {
+        "at": "2026-10-08T21:10:00.000Z",
         "phase": 6,
         "note": "Closed and published read-only"
       }
@@ -97,18 +106,18 @@
     },
     "act": {
       "path": "novel",
-      "actionsTaken": "1. Unblock the customer today: add response_format: json under litellm_params for that model in model_list. Verified on main through the Router, the same path the proxy uses: json is sent and the request succeeds, and a client that does send response_format still overrides it.\n2. Reply on the issue: the per-model default they asked for already works this way; the cause is model selection, not a missing setting; and ask which model the title's gpt-realtime refers to.\n3. Library fix: in get_provider_audio_transcription_config, select the GPT config for any OpenAI model name containing \"gpt-\", not only \"gpt-4o\". Whisper and unrecognised OpenAI-compatible models keep the Whisper config and its verbose_json default, so cost tracking for them is unchanged.\n4. Regression test covering whisper-1, an unrecognised model, both gpt-4o models and two newer gpt-* names, asserting which config is chosen and whether verbose_json is added. The two newer names fail on main and pass with the fix; the existing OpenAI transcription tests still pass.",
-      "deviations": "Worked from public sources and a local stand-in for OpenAI, not the live API or the customer's proxy. The proxy itself was not started; the Router path it uses was tested instead. The fix and test are ready as a patch but not yet submitted upstream.",
-      "outcome": "Issue #43867 is open with no replies as of 8 Oct 2026. The customer has a verified workaround, and the defect is narrowed to one condition in one function with a tested fix."
+      "actionsTaken": "1. Unblock the customer today: add response_format: json under litellm_params for that model in model_list. Verified on main through the Router, the same path the proxy uses: json is sent and the request succeeds, and a client that does send response_format still overrides it.\n2. Reply on the issue: the per-model default they asked for already works this way; the cause is model selection, not a missing setting; and ask which model the title's gpt-realtime refers to.\n3. Library fix: PR #44021, opened 1 Oct by a community contributor, already routes OpenAI models starting with \"gpt-\" and containing \"transcribe\" to the GPT config. I ran the reproduction against its head (2fd3cf3): whisper-1 still gets verbose_json; gpt-4o-transcribe, gpt-4o-mini-transcribe, gpt-transcribe and gpt-realtime-transcribe get no default and succeed; the litellm_params workaround and request overrides still work; the 38 OpenAI transcription unit tests pass. Recommend merging it rather than opening a second PR.\n4. My own version (any \"gpt-\" model gets the GPT config) is broader and kept as a note on the PR: it would also cover a future GPT audio model without \"transcribe\" in its name, at the cost of a wider change.",
+      "deviations": "Worked from public sources and a local stand-in for OpenAI, not the live API or the customer's proxy. The proxy itself was not started; the Router path it uses was tested instead. I wrote a fix and regression test before noticing PR #44021, which was already linked on the issue; that patch was not submitted.",
+      "outcome": "Issue #43867 is open with no maintainer replies as of 8 Oct 2026. The customer has a verified workaround, and community PR #44021 fixes the cause, verified against the reproduction; it awaits review."
     },
     "record": {
       "ticketUpdated": true,
       "postMortemNeeded": false,
       "runbookUpdated": false,
       "alertAdded": false,
-      "testAdded": true,
+      "testAdded": false,
       "broadcast": false,
-      "learning": "The customer asked for a feature; the problem was a bug. Reproducing what they asked for showed the feature already existed, which turned a roadmap request into a config change today and a one-line fix. Rules keyed on model names age with every release: a check for \"gpt-4o\" was correct the day it was written. Follow-through: a test per known model family, and docs showing response_format under litellm_params for transcription models.",
+      "learning": "The customer asked for a feature; the problem was a bug. Reproducing what they asked for showed the feature already existed, which turned a roadmap request into a config change today. Rules keyed on model names age with every release: a check for \"gpt-4o\" was correct the day it was written. And a wrong turn worth keeping: I wrote a fix before checking the issue's Development panel, where a community PR with the same fix had been waiting a week. Check for existing work before writing new work; verifying someone else's fix is often the more useful contribution.",
       "phaseThatMattered": "contextualize"
     }
   }
