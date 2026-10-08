@@ -1,0 +1,115 @@
+{
+  "slug": "litellm-transcription-verbose-json-gpt-models",
+  "title": "LiteLLM: newer GPT transcription models are sent a format they reject",
+  "summary": "A worked public case. A LiteLLM proxy user reports that audio transcription with a newer OpenAI model fails because LiteLLM always adds response_format: verbose_json, and asks for a per-model default. Reproducing it shows the per-model default already works through litellm_params, which unblocks the customer today. The real defect is a substring check: only model names containing \"gpt-4o\" get the GPT transcription config, so every newer gpt-* model inherits Whisper's verbose_json default.",
+  "publishedAt": "2026-10-08",
+  "sources": [
+    {
+      "label": "BerriAI/litellm issue #43867: default response format breaks gpt-realtime and is not overwritable (opened 30 Sep 2026, open, no replies as of 8 Oct)",
+      "url": "https://github.com/BerriAI/litellm/issues/43867"
+    },
+    {
+      "label": "LiteLLM source at 29f48e6 (main, 8 Oct 2026): litellm/utils.py, ProviderConfigManager.get_provider_audio_transcription_config",
+      "url": "https://github.com/BerriAI/litellm/blob/29f48e6/litellm/utils.py"
+    },
+    {
+      "label": "LiteLLM source at 29f48e6: litellm/llms/openai/transcriptions/whisper_transformation.py (verbose_json default)",
+      "url": "https://github.com/BerriAI/litellm/blob/29f48e6/litellm/llms/openai/transcriptions/whisper_transformation.py"
+    },
+    {
+      "label": "LiteLLM source at 29f48e6: litellm/llms/openai/transcriptions/gpt_transformation.py (no default)",
+      "url": "https://github.com/BerriAI/litellm/blob/29f48e6/litellm/llms/openai/transcriptions/gpt_transformation.py"
+    },
+    {
+      "label": "OpenAI API reference: Create transcription (response_format; GPT transcription models accept json or text only)",
+      "url": "https://platform.openai.com/docs/api-reference/audio/createTranscription"
+    }
+  ],
+  "case": {
+    "id": "ll-43867",
+    "createdAt": "2026-10-08T20:15:00.000Z",
+    "updatedAt": "2026-10-08T21:30:00.000Z",
+    "status": "closed",
+    "timeline": [
+      {
+        "at": "2026-10-08T20:15:00.000Z",
+        "phase": "gate",
+        "note": "Case opened from public GitHub issue BerriAI/litellm #43867 (opened 30 Sep 2026; no replies, no linked PR)"
+      },
+      {
+        "at": "2026-10-08T20:25:00.000Z",
+        "phase": 1,
+        "note": "Restated: transcription fails for a newer OpenAI model; the customer's client (OpenWebUI) cannot set response_format per request. Noted that the title says gpt-realtime and the body says gpt-transcribe"
+      },
+      {
+        "at": "2026-10-08T20:50:00.000Z",
+        "phase": 3,
+        "note": "Read the source and reproduced against a local stand-in for the OpenAI endpoint: the requested per-model default already works; the cause is a \"gpt-4o\" substring check that sends every other gpt-* model down the Whisper path"
+      },
+      {
+        "at": "2026-10-08T21:05:00.000Z",
+        "phase": 4,
+        "note": "Decision: unblock the customer with a config change now, and investigate as a one-line library fix with a regression test"
+      },
+      {
+        "at": "2026-10-08T21:30:00.000Z",
+        "phase": 6,
+        "note": "Closed and published read-only"
+      }
+    ],
+    "receive": {
+      "acknowledged": true,
+      "reporter": "LiteLLM proxy user filing publicly on BerriAI/litellm (issue #43867, 30 Sep 2026), running LiteLLM in Docker behind OpenWebUI",
+      "reportedAt": "2026-09-30T00:00",
+      "onsetAt": "",
+      "environment": "LiteLLM 1.103 proxy in Docker; OpenAI provider, model openai/gpt-transcribe; client OpenWebUI, which does not expose response_format",
+      "affected": "Everyone transcribing through a newer OpenAI GPT model whose name lacks \"gpt-4o\". Every request fails, so speech-to-text is down for those users, not degraded",
+      "evidence": "\"LiteLLM applies response_format: verbose_json to all audio transcription requests at the transformation layer.\" Code cited: whisper_transformation.py sets response_format to verbose_json when the key is missing. Requested: a per-model default in the proxy config, a request-level override that wins, and verbose_json as the fallback.",
+      "missing": "The exact error returned by OpenAI; the full model_list entry; which model the title's \"gpt-realtime\" refers to, since the body names gpt-transcribe"
+    },
+    "parse": {
+      "restated": "Transcription requests to a newer OpenAI GPT model are sent response_format: verbose_json, which the model rejects, and the customer's client cannot send a different value per request.",
+      "observableFacts": "1. The Whisper transformation adds response_format: verbose_json whenever the request has none.\n2. The GPT transformation adds nothing.\n3. The requests fail for openai/gpt-transcribe.\n4. The client cannot set response_format on each request.",
+      "reporterHypothesis": "LiteLLM forces verbose_json on all transcription requests and has no way to change the default per model, so a model-level setting is needed.",
+      "scope": "OpenAI-provider transcription only. Whisper models are correct to get verbose_json, which LiteLLM uses to read the audio duration for cost. gpt-4o-transcribe and gpt-4o-mini-transcribe are unaffected. Azure is a separate code path.",
+      "clarifyingQuestions": "What error does OpenAI return? Is the failing model gpt-transcribe, a gpt-realtime model, or both? Has response_format been tried under litellm_params in model_list?"
+    },
+    "classify": {
+      "category": "functional_defect",
+      "severity": "sev3",
+      "severityReconsidered": true,
+      "duplicateOf": "",
+      "securityChecked": true
+    },
+    "contextualize": {
+      "recentChanges": "None needed to explain it. The selection rule (\"gpt-4o\" in model) dates from when gpt-4o-transcribe was the only GPT transcription model; models released since do not match it.",
+      "serviceHealth": "Not an outage. OpenAI is enforcing its documented response_format rules for these models; the defect is in what LiteLLM sends.",
+      "errorTracker": "The failure is a 400 from OpenAI naming response_format, which points straight at the request body rather than at LiteLLM or the network.",
+      "logsAndTraces": "Reproduced on main at 29f48e6 against a local HTTP stand-in for the OpenAI endpoint that, like OpenAI, rejects verbose_json for non-Whisper models and records what each request sends. whisper-1: sent verbose_json, OK. gpt-4o-transcribe and gpt-4o-mini-transcribe: sent nothing, OK. gpt-transcribe and gpt-realtime-transcribe: sent verbose_json, 400. Request-level response_format: json: sent json, OK.",
+      "rumAndReplay": "Not applicable: a server-side request translation.",
+      "patterns": "Same failure shape as case 1 in this case library (jobpipe's cisco filter): a substring test that matched the names that existed when it was written and silently excludes the ones that came after.",
+      "evidenceBundle": "H1. LiteLLM forces verbose_json on every transcription request. Partly true: only on the Whisper config path.\nH2. There is no per-model default. Ruled out: a Router built from a model_list entry with response_format: json under litellm_params sends json, and a request-level value still overrides it. All three behaviours the reporter asked for already exist.\nH3. The wrong config is selected for the model. Confirmed: ProviderConfigManager.get_provider_audio_transcription_config returns the GPT config only when \"gpt-4o\" is in the model name, so gpt-transcribe gets the Whisper config and its verbose_json default.\nFinding: a config workaround today, and a one-line selection fix for everyone else."
+    },
+    "triage": {
+      "decision": "investigate",
+      "reasoning": "The customer is blocked on every transcription, but a supported config setting unblocks them immediately, so this is not an escalation. The underlying defect is small and well located, so it becomes a work ticket with a ready patch rather than a feature request for per-model defaults, which already exist.",
+      "whatWouldChangeMyMind": "If OpenAI-compatible servers that are not Whisper but still rely on verbose_json (for duration and cost) were common among customers, a name-based rule would be the wrong fix; the selection would need to come from the model cost map instead."
+    },
+    "act": {
+      "path": "novel",
+      "actionsTaken": "1. Unblock the customer today: add response_format: json under litellm_params for that model in model_list. Verified on main through the Router, the same path the proxy uses: json is sent and the request succeeds, and a client that does send response_format still overrides it.\n2. Reply on the issue: the per-model default they asked for already works this way; the cause is model selection, not a missing setting; and ask which model the title's gpt-realtime refers to.\n3. Library fix: in get_provider_audio_transcription_config, select the GPT config for any OpenAI model name containing \"gpt-\", not only \"gpt-4o\". Whisper and unrecognised OpenAI-compatible models keep the Whisper config and its verbose_json default, so cost tracking for them is unchanged.\n4. Regression test covering whisper-1, an unrecognised model, both gpt-4o models and two newer gpt-* names, asserting which config is chosen and whether verbose_json is added. The two newer names fail on main and pass with the fix; the existing OpenAI transcription tests still pass.",
+      "deviations": "Worked from public sources and a local stand-in for OpenAI, not the live API or the customer's proxy. The proxy itself was not started; the Router path it uses was tested instead. The fix and test are ready as a patch but not yet submitted upstream.",
+      "outcome": "Issue #43867 is open with no replies as of 8 Oct 2026. The customer has a verified workaround, and the defect is narrowed to one condition in one function with a tested fix."
+    },
+    "record": {
+      "ticketUpdated": true,
+      "postMortemNeeded": false,
+      "runbookUpdated": false,
+      "alertAdded": false,
+      "testAdded": true,
+      "broadcast": false,
+      "learning": "The customer asked for a feature; the problem was a bug. Reproducing what they asked for showed the feature already existed, which turned a roadmap request into a config change today and a one-line fix. Rules keyed on model names age with every release: a check for \"gpt-4o\" was correct the day it was written. Follow-through: a test per known model family, and docs showing response_format under litellm_params for transcription models.",
+      "phaseThatMattered": "contextualize"
+    }
+  }
+}
